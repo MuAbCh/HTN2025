@@ -1,10 +1,8 @@
-import TwoFingers from './TwoFingers'
-import './App.css'
+import TwoFingers from "./TwoFingers";
+import "./App.css";
 
 function App() {
-  return (
-    <TwoFingers indexValue={0} middleValue={0} />
-  )
+	return <TwoFingers indexValue={0} middleValue={0} />;
 }
 
-export default App
+export default App;
