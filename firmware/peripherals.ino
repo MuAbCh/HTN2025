@@ -1,4 +1,4 @@
-//int x = A1; // don't need x 
+int x = A3;
 int y = A2;
 //int z = A3; // don't need z
 int tilt = A0;
@@ -7,7 +7,7 @@ int buzzer = A1;
 
 void setup() {
   Serial.begin(9600);
-  //pinMode(x, INPUT);
+  pinMode(x, INPUT);
   pinMode(y, INPUT);
   //pinMode(z, INPUT);
   pinMode(tilt, INPUT);
@@ -18,6 +18,7 @@ void setup() {
 void loop() {
   //Serial.println(String(analogRead(x)) + "," + String(analogRead(y)) + "," + String(analogRead(z)));
   Serial.println("Y: " + String(analogRead(y)));
+  Serial.println("X: " + String(analogRead(x)));
   Serial.println("Tilt: " + String(analogRead(tilt)));
   Serial.println("Pressure: " + String(analogRead(pressure)));
   tone(buzzer, 85);
