@@ -4,6 +4,7 @@
     "": {
       "name": "backend",
       "dependencies": {
+        "@serialport/parser-readline": "^13.0.0",
         "serialport": "^13.0.0",
       },
       "devDependencies": {
