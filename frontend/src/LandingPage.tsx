@@ -13,6 +13,9 @@ export default function LandingPage() {
   const [tiltScore, setTiltScore] = useState(78);
   const [impactScore, setImpactScore] = useState(92);
   const [tensionScore, setTensionScore] = useState(65);
+  const [wpmScore, setWpmScore] = useState(85);
+  const [accuracyScore, setAccuracyScore] = useState(94);
+  const [comfortScore, setComfortScore] = useState(72);
   const [typingTime, setTypingTime] = useState(142); // minutes
   const [nextBreak, setNextBreak] = useState(18); // minutes
   const [indexValue, setIndexValue] = useState(25);
@@ -52,6 +55,9 @@ export default function LandingPage() {
       setTiltScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 5))));
       setImpactScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 3))));
       setTensionScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 8))));
+      setWpmScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 4))));
+      setAccuracyScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 2))));
+      setComfortScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 6))));
       
       // Simulate finger sensor data
       setIndexValue(prev => Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 10)));
@@ -136,12 +142,42 @@ export default function LandingPage() {
           </h1>
         </div>
 
-        {/* Three Metrics Grid */}
+        {/* Agent Summary */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: '12px',
+          padding: '20px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          flexShrink: 0,
+          marginBottom: '20px'
+        }}>
+          <h3 style={{
+            fontSize: '16px',
+            fontWeight: '600',
+            margin: '0 0 12px 0',
+            color: '#00ffff'
+          }}>
+            Agent Summary
+          </h3>
+          <p style={{
+            fontSize: '14px',
+            color: '#cccccc',
+            margin: 0,
+            lineHeight: '1.5'
+          }}>
+            Your typing posture has been stable today with minor fluctuations in finger tension. Consider taking a 5-minute break to perform wrist rotations and finger stretches. Your impact scores are excellent, indicating good keystroke pressure control.
+          </p>
+        </div>
+
+        {/* 2x3 Scores Grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr',
+          gridTemplateRows: '1fr 1fr',
           gap: '16px',
-          flexShrink: 0
+          flexShrink: 0,
+          marginBottom: '20px'
         }}>
           {/* Tilt Score */}
           <div style={{
@@ -265,16 +301,8 @@ export default function LandingPage() {
               }} />
             </div>
           </div>
-        </div>
 
-        {/* Stats Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '16px',
-          flexShrink: 0
-        }}>
-          {/* Typing Time */}
+          {/* WPM Score */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.05)',
             borderRadius: '12px',
@@ -288,19 +316,34 @@ export default function LandingPage() {
               margin: '0 0 8px 0',
               color: '#888888'
             }}>
-              Session Time
+              WPM
             </h3>
             <p style={{
-              fontSize: '24px',
+              fontSize: '32px',
               fontWeight: '700',
-              margin: 0,
-              color: '#ffffff'
+              margin: '0 0 8px 0',
+              color: getScoreColor(wpmScore)
             }}>
-              {formatTime(typingTime)}
+              {wpmScore}
             </p>
+            <div style={{
+              width: '100%',
+              height: '4px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '2px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: `${wpmScore}%`,
+                height: '100%',
+                background: getScoreColor(wpmScore),
+                borderRadius: '2px',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
           </div>
 
-          {/* Next Break */}
+          {/* Accuracy Score */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.05)',
             borderRadius: '12px',
@@ -314,16 +357,211 @@ export default function LandingPage() {
               margin: '0 0 8px 0',
               color: '#888888'
             }}>
-              Next Break
+              Accuracy
             </h3>
             <p style={{
-              fontSize: '24px',
+              fontSize: '32px',
               fontWeight: '700',
-              margin: 0,
-              color: nextBreak <= 5 ? '#ff4444' : '#ffffff'
+              margin: '0 0 8px 0',
+              color: getScoreColor(accuracyScore)
             }}>
-              {nextBreak > 0 ? `${nextBreak}m` : 'Now!'}
+              {accuracyScore}
             </p>
+            <div style={{
+              width: '100%',
+              height: '4px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '2px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: `${accuracyScore}%`,
+                height: '100%',
+                background: getScoreColor(accuracyScore),
+                borderRadius: '2px',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
+          </div>
+
+          {/* Comfort Score */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '12px',
+            padding: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              margin: '0 0 8px 0',
+              color: '#888888'
+            }}>
+              Comfort
+            </h3>
+            <p style={{
+              fontSize: '32px',
+              fontWeight: '700',
+              margin: '0 0 8px 0',
+              color: getScoreColor(comfortScore)
+            }}>
+              {comfortScore}
+            </p>
+            <div style={{
+              width: '100%',
+              height: '4px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '2px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: `${comfortScore}%`,
+                height: '100%',
+                background: getScoreColor(comfortScore),
+                borderRadius: '2px',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Alerts and Recommendations */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: '12px',
+          padding: '20px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          flexShrink: 0
+        }}>
+          <h3 style={{
+            fontSize: '16px',
+            fontWeight: '600',
+            margin: '0 0 16px 0',
+            color: '#00ffff'
+          }}>
+            Alerts & Recommendations
+          </h3>
+          
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
+            {/* Alert Item */}
+            <div style={{
+              background: 'rgba(255, 165, 0, 0.1)',
+              borderRadius: '8px',
+              padding: '12px',
+              border: '1px solid rgba(255, 165, 0, 0.3)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px'
+            }}>
+              <div style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#ffa500',
+                marginTop: '6px',
+                flexShrink: 0
+              }} />
+              <div>
+                <h4 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  margin: '0 0 4px 0',
+                  color: '#ffa500'
+                }}>
+                  Tension Alert
+                </h4>
+                <p style={{
+                  fontSize: '13px',
+                  color: '#cccccc',
+                  margin: 0,
+                  lineHeight: '1.4'
+                }}>
+                  Your finger tension has increased by 15% in the last hour. Consider taking a 2-minute break for finger stretches.
+                </p>
+              </div>
+            </div>
+
+            {/* Recommendation Item */}
+            <div style={{
+              background: 'rgba(0, 255, 255, 0.1)',
+              borderRadius: '8px',
+              padding: '12px',
+              border: '1px solid rgba(0, 255, 255, 0.3)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px'
+            }}>
+              <div style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#00ffff',
+                marginTop: '6px',
+                flexShrink: 0
+              }} />
+              <div>
+                <h4 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  margin: '0 0 4px 0',
+                  color: '#00ffff'
+                }}>
+                  Posture Improvement
+                </h4>
+                <p style={{
+                  fontSize: '13px',
+                  color: '#cccccc',
+                  margin: 0,
+                  lineHeight: '1.4'
+                }}>
+                  Adjust your wrist angle by 5-10 degrees. Your current tilt score could be improved with better keyboard positioning.
+                </p>
+              </div>
+            </div>
+
+            {/* Positive Feedback */}
+            <div style={{
+              background: 'rgba(0, 255, 0, 0.1)',
+              borderRadius: '8px',
+              padding: '12px',
+              border: '1px solid rgba(0, 255, 0, 0.3)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px'
+            }}>
+              <div style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#00ff00',
+                marginTop: '6px',
+                flexShrink: 0
+              }} />
+              <div>
+                <h4 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  margin: '0 0 4px 0',
+                  color: '#00ff00'
+                }}>
+                  Great Progress!
+                </h4>
+                <p style={{
+                  fontSize: '13px',
+                  color: '#cccccc',
+                  margin: 0,
+                  lineHeight: '1.4'
+                }}>
+                  Your typing accuracy has improved by 3% this week. Keep maintaining this excellent keystroke pressure control.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
