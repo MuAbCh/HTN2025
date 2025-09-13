@@ -1,8 +1,8 @@
-import TwoFingers from "./TwoFingers";
+import LandingPage from "./LandingPage";
 import "./App.css";
 
 function App() {
-	return <TwoFingers indexValue={0} middleValue={0} />;
+	return <LandingPage />;
 }
 
 export default App;
