@@ -1,0 +1,53 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-build
+        path: frontend/dist/
+
+  firmware:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Arduino CLI
+      uses: arduino/setup-arduino-cli@v1
+      
+    - name: Install Arduino dependencies
+      run: |
+        arduino-cli core install arduino:avr
+        arduino-cli lib install "ArduinoJson"
+        
+    - name: Compile firmware
+      run: |
+        arduino-cli compile --fqbn arduino:avr:lilypad firmware/finger_strain_detector.ino
