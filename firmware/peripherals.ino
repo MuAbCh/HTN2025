@@ -12,7 +12,8 @@ void setup() {
   pinMode(y, INPUT);
   //pinMode(z, INPUT);
   pinMode(tilt, INPUT);
-  pinMode(pressure, INPUT);
+  pinMode(pressure1, INPUT);
+  pinMode(pressure2, INPUT);
   pinMode(buzzer, OUTPUT);
 }
 
