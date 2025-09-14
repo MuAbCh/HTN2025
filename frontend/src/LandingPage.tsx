@@ -3,11 +3,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import ErrorIcon from "@mui/icons-material/Error";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import WarningIcon from "@mui/icons-material/Warning";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import TwoFingers from "./TwoFingers";
 
 const PRESSURE_RING_BUFFER_SIZE = 8;
+const NOTIFICATION_THROTTLE_MS = 30000; // 30 seconds
 
 interface NotificationItem {
 	id: string;
@@ -33,30 +34,78 @@ interface Stats {
 
 const socket = io("http://localhost:4000");
 
+// Status messages for different metrics and levels
+const STATUS_MESSAGES = {
+	risk: {
+		normal: "Your typing habits are healthy and sustainable",
+		warning: "Some strain detected - consider taking breaks more frequently", 
+		alert: "High strain levels detected - immediate rest recommended"
+	},
+	heavyPress: {
+		normal: "Excellent keystroke pressure - your fingers are relaxed",
+		warning: "Moderate finger strain detected - try lighter keystrokes",
+		alert: "Excessive finger pressure detected - rest and adjust technique immediately"
+	},
+	staticHold: {
+		normal: "Great finger movement and flexibility maintained",
+		warning: "Your fingers need more movement - try some gentle flexing",
+		alert: "Prolonged static positioning detected - stretch and flex your fingers now"
+	},
+	bursts: {
+		normal: "Smooth, controlled finger movements - excellent technique",
+		warning: "Some erratic movements detected - slow down and focus on control",
+		alert: "Excessive jerky movements detected - take a break and reset your posture"
+	},
+	extremeTilt: {
+		normal: "Optimal wrist positioning maintained",
+		warning: "Wrist angle needs adjustment - check your keyboard height",
+		alert: "Dangerous wrist angle detected - adjust posture immediately to prevent injury"
+	},
+	minutesSinceBreak: {
+		normal: "You're maintaining a healthy work rhythm",
+		warning: "Time for a micro-break - just 30 seconds of stretching will help",
+		alert: "You've been typing too long without rest - take a proper break now"
+	}
+};
+
+// Notification messages for alerts
+const NOTIFICATION_MESSAGES = {
+	risk: "🚨 High typing strain detected! Take a break now to prevent injury.",
+	heavyPress: "⚠️ Excessive finger pressure detected! Lighten your keystrokes and rest your hands.",
+	staticHold: "🤲 Your fingers need movement! Take a moment to stretch and flex.",
+	bursts: "⚡ Too many sudden movements detected! Slow down and focus on smooth typing.",
+	extremeTilt: "🤚 Dangerous wrist angle detected! Adjust your posture immediately.",
+	minutesSinceBreak: "⏰ Time for a break! You've been typing too long without rest."
+};
+
 export default function LandingPage() {
-	// const [agentSummary, setAgentSummary] = useState(
-	// 	"Your typing posture has been stable today with minor fluctuations in finger tension. Consider taking a 5-minute break to perform wrist rotations and finger stretches. Your impact scores are excellent, indicating good keystroke pressure control.",
-	// );
-	const [indexValue, setIndexValue] = useState(25);
-	const [middleValue, setMiddleValue] = useState(30);
+	const [lastNotifTime, setLastNotifTime] = useState<number | null>(null);
+	const previousStatuses = useRef({
+		risk: 'normal',
+		heavyPress: 'normal', 
+		staticHold: 'normal',
+		bursts: 'normal',
+		extremeTilt: 'normal',
+		minutesSinceBreak: 'normal'
+	});
 
 	const [stats, setStats] = useState<Stats | null>(null);
 	const [notifications, setNotifications] = useState<NotificationItem[]>([{
 		id: "1",
 		type: "stretch",
-		message: "Time to stretch your fingers - detected increased tension",
+		message: "Finger tension spike detected - time for some gentle stretches",
 		timestamp: new Date(Date.now() - 5 * 60 * 1000),
 		read: false,
 	}, {
 		id: "2",
 		type: "posture",
-		message: "Consider adjusting your wrist position",
+		message: "Wrist positioning could be improved - check your setup",
 		timestamp: new Date(Date.now() - 15 * 60 * 1000),
 		read: false,
 	}, {
 		id: "3",
 		type: "break",
-		message: "Great job! You took a break at the right time",
+		message: "Perfect timing! Your break came right when your fingers needed it",
 		timestamp: new Date(Date.now() - 45 * 60 * 1000),
 		read: true,
 	}]);
@@ -101,23 +150,32 @@ export default function LandingPage() {
 		};
 	}, []);
 
-	const formatTime = (minutes: number) => {
-		const hours = Math.floor(minutes / 60);
-		const mins = minutes % 60;
-		return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-	};
+	useEffect(() => {
+		Notification.requestPermission().then((result) => {
+			console.log('Notification permission:', result);
+		});
+	}, []);
 
-	const getStatusDisplay = (status: string) => {
-		switch (status) {
-			case "normal":
-				return "Good";
-			case "warning":
-				return "Warning";
-			case "alert":
-				return "Alert";
-			default:
-				return "Unknown";
+	// Send notification if status changes to alert and enough time has passed
+	const sendNotificationIfNeeded = (metric: keyof typeof STATUS_MESSAGES, currentStatus: string) => {
+		const now = Date.now();
+		const shouldThrottle = lastNotifTime && (now - lastNotifTime) < NOTIFICATION_THROTTLE_MS;
+		
+		if (currentStatus === 'alert' && 
+			previousStatuses.current[metric] !== 'alert' && 
+			!shouldThrottle &&
+			Notification.permission === 'granted') {
+			
+			new Notification('Clau - Ergonomic Alert', {
+				body: NOTIFICATION_MESSAGES[metric],
+				icon: '/favicon.ico',
+				tag: metric // This prevents duplicate notifications for the same metric
+			});
+			
+			setLastNotifTime(now);
 		}
+		
+		previousStatuses.current[metric] = currentStatus;
 	};
 
 	const getStatusColor = (status: string) => {
@@ -146,12 +204,6 @@ export default function LandingPage() {
 		}
 	};
 
-	const getScoreColor = (score: number) => {
-		if (score >= 80) return "#00ff88";
-		if (score >= 60) return "#ffaa00";
-		return "#ff4444";
-	};
-
 	const markAsRead = (id: string) => {
 		setNotifications((prev) =>
 			prev.map((notif) => notif.id === id ? { ...notif, read: true } : notif)
@@ -164,26 +216,52 @@ export default function LandingPage() {
 		return "normal";
 	};
 
-	const riskStatus = useMemo(() => getNormStatus((stats?.risk ?? 0) / 70), [stats?.risk]);
+	const riskStatus = useMemo(() => {
+		const status = getNormStatus((stats?.risk ?? 0) / 70);
+		sendNotificationIfNeeded('risk', status);
+		return status;
+	}, [stats?.risk]);
 
 	const heavyPressStatus = useMemo(() => {
 		const heavyPressNorm = stats?.heavyPressNorm || 0;
-        if (heavyPressNorm >= 0.3) return "alert";
-        if (heavyPressNorm >= 0.2) return "warning";
-        return "normal";
+		let status;
+		if (heavyPressNorm >= 0.3) status = "alert";
+		else if (heavyPressNorm >= 0.2) status = "warning";
+		else status = "normal";
+		
+		sendNotificationIfNeeded('heavyPress', status);
+		return status;
 	}, [stats?.heavyPressNorm]);
 
 	const extremeTiltStatus = useMemo(() => {
-		const extremeTiltNorm = (stats?.extremeTiltNorm || 0);
+		const extremeTiltNorm = stats?.extremeTiltNorm || 0;
 		const pressure = stats?.pressure || 0;
-		if (extremeTiltNorm >= 0.3 && pressure >= 20) return "alert";
-		if (extremeTiltNorm >= 0.2) return "warning";
-		return "normal";
+		let status;
+		if (extremeTiltNorm >= 0.3 && pressure >= 20) status = "alert";
+		else if (extremeTiltNorm >= 0.2) status = "warning";
+		else status = "normal";
+		
+		sendNotificationIfNeeded('extremeTilt', status);
+		return status;
 	}, [stats?.extremeTiltNorm, stats?.pressure]);
 
-	const staticHoldStatus = useMemo(() => getNormStatus(stats?.staticHoldNorm || 0), [stats?.staticHoldNorm]);
-	const burstsStatus = useMemo(() => getNormStatus(stats?.burstsNorm || 0), [stats?.burstsNorm]);
-	const minutesSinceBreakStatus = useMemo(() => getNormStatus((stats?.minutesSinceBreak || 0) / 40), [stats?.minutesSinceBreak]);
+	const staticHoldStatus = useMemo(() => {
+		const status = getNormStatus(stats?.staticHoldNorm || 0);
+		sendNotificationIfNeeded('staticHold', status);
+		return status;
+	}, [stats?.staticHoldNorm]);
+	
+	const burstsStatus = useMemo(() => {
+		const status = getNormStatus(stats?.burstsNorm || 0);
+		sendNotificationIfNeeded('bursts', status);
+		return status;
+	}, [stats?.burstsNorm]);
+	
+	const minutesSinceBreakStatus = useMemo(() => {
+		const status = getNormStatus((stats?.minutesSinceBreak || 0) / 40);
+		sendNotificationIfNeeded('minutesSinceBreak', status);
+		return status;
+	}, [stats?.minutesSinceBreak]);
 
 	return (
 		<div
@@ -227,12 +305,13 @@ export default function LandingPage() {
 					>
 						<span style={{ fontFamily: "cursive", fontSize: "28px" }}>Your</span>
 						<span style={{ fontFamily: "serif", fontSize: "36px" }}>Clau</span>
-						<span style={{ fontFamily: "cursive", fontSize: "28px" }}>Dashboard</span>
+						<span style={{ fontFamily: "cursive", fontSize: "28px" }}>Health Hub</span>
 					</h1>
 				</div>
 
 				{/* Agent Summary */}
-				{/*<div
+				{
+					/*<div
 					style={{
 						background: "rgba(255, 255, 255, 0.05)",
 						borderRadius: "12px",
@@ -256,7 +335,8 @@ export default function LandingPage() {
 					<p style={{ fontSize: "14px", color: "#cccccc", margin: 0, lineHeight: "1.5" }}>
 						{agentSummary}
 					</p>
-				</div>*/}
+				</div>*/
+				}
 
 				{/* 2x3 Scores Grid */}
 				<div
@@ -338,11 +418,7 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{riskStatus === "normal"
-									? "Your typing posture is within healthy limits."
-									: riskStatus === "warning"
-									? "Not great! Consider giving your hands a break."
-									: "High pressure detected. Take breaks and adjust typing technique."}
+								{STATUS_MESSAGES.risk[riskStatus as keyof typeof STATUS_MESSAGES.risk]}
 							</p>
 						</div>
 					</div>
@@ -416,11 +492,7 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{heavyPressStatus === "normal"
-									? "Little to no strain detected on flexors."
-									: heavyPressStatus === "warning"
-									? "Minor strain detected on flexors. Consider taking a break."
-									: "Significant strain detected on flexors. Rest your hands and consider ergonomic adjustments."}
+								{STATUS_MESSAGES.heavyPress[heavyPressStatus as keyof typeof STATUS_MESSAGES.heavyPress]}
 							</p>
 						</div>
 					</div>
@@ -494,11 +566,7 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{staticHoldStatus === "normal"
-									? "Activity levels are normal."
-									: staticHoldStatus === "warning"
-									? "Your fingers haven't moved much, give them a flex!"
-									: "High levels of strain detected over a long period of time. Flex your fingers and stretch your hands!"}
+								{STATUS_MESSAGES.staticHold[staticHoldStatus as keyof typeof STATUS_MESSAGES.staticHold]}
 							</p>
 						</div>
 					</div>
@@ -572,11 +640,7 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{burstsStatus === "normal"
-									? "Low twitchiness detected. Your fingers are relaxed."
-									: burstsStatus === "warning"
-									? "Some twitchiness detected. Consider taking a break soon."
-									: "Your fingers are making a lot of sudden movements. Adjust your working finger posture."}
+								{STATUS_MESSAGES.bursts[burstsStatus as keyof typeof STATUS_MESSAGES.bursts]}
 							</p>
 						</div>
 					</div>
@@ -650,11 +714,7 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{extremeTiltStatus === "normal"
-									? "Hand tilt is within normal range."
-									: extremeTiltStatus === "warning"
-									? "Some excessive hand tilt detected. Consider adjusting your posture."
-									: "Your hand appears to be at a very uncomfortable angle; give your wrist a break!"}
+								{STATUS_MESSAGES.extremeTilt[extremeTiltStatus as keyof typeof STATUS_MESSAGES.extremeTilt]}
 							</p>
 						</div>
 					</div>
@@ -728,11 +788,7 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{minutesSinceBreakStatus === "normal"
-									? "Your fingers are doing fine for now."
-									: minutesSinceBreakStatus === "warning"
-									? "You've been at this for some time. Consider taking a short break."
-									: "You've been working your fingers a lot, give them some rest!"}
+								{STATUS_MESSAGES.minutesSinceBreak[minutesSinceBreakStatus as keyof typeof STATUS_MESSAGES.minutesSinceBreak]}
 							</p>
 						</div>
 					</div>
@@ -757,7 +813,7 @@ export default function LandingPage() {
 							color: "#00ffff",
 						}}
 					>
-						Alerts & Recommendations
+						Smart Health Insights
 					</h3>
 
 					<div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -792,7 +848,7 @@ export default function LandingPage() {
 										color: "#ffa500",
 									}}
 								>
-									Tension Alert
+									Ergonomic Alert
 								</h4>
 								<p
 									style={{
@@ -802,8 +858,8 @@ export default function LandingPage() {
 										lineHeight: "1.4",
 									}}
 								>
-									Your finger tension has increased by 15% in the last hour.
-									Consider taking a 2-minute break for finger stretches.
+									Your finger tension has increased by 18% in the last hour.
+									Time for a quick 90-second finger flexibility routine.
 								</p>
 							</div>
 						</div>
@@ -839,7 +895,7 @@ export default function LandingPage() {
 										color: "#00ffff",
 									}}
 								>
-									Posture Improvement
+									Posture Optimization
 								</h4>
 								<p
 									style={{
@@ -849,8 +905,8 @@ export default function LandingPage() {
 										lineHeight: "1.4",
 									}}
 								>
-									Adjust your wrist angle by 5-10 degrees. Your current tilt score
-									could be improved with better keyboard positioning.
+									Slight wrist adjustment recommended - try raising your keyboard
+									or lowering your chair by 1-2 inches for optimal angle.
 								</p>
 							</div>
 						</div>
@@ -886,7 +942,7 @@ export default function LandingPage() {
 										color: "#00ff00",
 									}}
 								>
-									Great Progress!
+									Excellent Form!
 								</h4>
 								<p
 									style={{
@@ -896,8 +952,8 @@ export default function LandingPage() {
 										lineHeight: "1.4",
 									}}
 								>
-									Your typing accuracy has improved by 3% this week. Keep
-									maintaining this excellent keystroke pressure control.
+									Your keystroke consistency has improved 22% this week! 
+									This controlled technique will help prevent long-term strain.
 								</p>
 							</div>
 						</div>
@@ -926,7 +982,7 @@ export default function LandingPage() {
 							color: "#ffffff",
 						}}
 					>
-						Exercise History & Notifications
+						Activity Log & Alerts
 					</h2>
 					{/* Exercise History Section */}
 					<div
@@ -944,7 +1000,7 @@ export default function LandingPage() {
 								color: "#00ffff",
 							}}
 						>
-							Recent Exercises
+							Recent Activities
 						</h3>
 						<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
 							<div
@@ -959,7 +1015,7 @@ export default function LandingPage() {
 								}}
 							>
 								<span style={{ color: "#ffffff", fontSize: "14px" }}>
-									Finger Stretches
+									Hand Mobility Routine
 								</span>
 								<span style={{ color: "#00ff00", fontSize: "12px" }}>
 									Completed 2h ago
@@ -977,7 +1033,7 @@ export default function LandingPage() {
 								}}
 							>
 								<span style={{ color: "#ffffff", fontSize: "14px" }}>
-									Wrist Rotations
+									Tension Release Session
 								</span>
 								<span style={{ color: "#00ff00", fontSize: "12px" }}>
 									Completed 4h ago
@@ -995,7 +1051,7 @@ export default function LandingPage() {
 								}}
 							>
 								<span style={{ color: "#ffffff", fontSize: "14px" }}>
-									Hand Massage
+									Pressure Point Relief
 								</span>
 								<span style={{ color: "#ffa500", fontSize: "12px" }}>
 									Skipped 6h ago
@@ -1014,7 +1070,7 @@ export default function LandingPage() {
 								color: "#00ffff",
 							}}
 						>
-							Notifications
+							Health Alerts
 						</h3>
 						<div
 							style={{
@@ -1091,7 +1147,7 @@ export default function LandingPage() {
 					flex: "1",
 					background: "rgba(255, 255, 255, 0.02)",
 					borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
-					position: "relative"
+					position: "relative",
 				}}
 			>
 				<div
@@ -1111,10 +1167,10 @@ export default function LandingPage() {
 							color: "#ffffff",
 						}}
 					>
-						Live Finger Tracking
+						Real-Time Biomechanics
 					</h3>
-					<p style={{ fontSize: "14px", color: "#888888", margin: 0,  }}>
-						Real-time ergonomic analysis
+					<p style={{ fontSize: "14px", color: "#888888", margin: 0 }}>
+						Live ergonomic monitoring & analysis
 					</p>
 				</div>
 

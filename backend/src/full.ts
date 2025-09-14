@@ -1,6 +1,6 @@
 import { createServer } from "http";
-import { Server, type Socket } from "socket.io";
 import { ReadlineParser, SerialPort } from "serialport";
+import { Server, type Socket } from "socket.io";
 
 const TICK_MS = 1000; // feature update cadence
 const WINDOW_SECS = 10; // rolling window for % metrics
