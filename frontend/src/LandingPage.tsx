@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
 import TwoFingers from './TwoFingers';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import WarningIcon from '@mui/icons-material/Warning';
+import ErrorIcon from '@mui/icons-material/Error';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface NotificationItem {
   id: string;
@@ -10,12 +15,13 @@ interface NotificationItem {
 }
 
 export default function LandingPage() {
-  const [tiltScore, setTiltScore] = useState(78);
-  const [impactScore, setImpactScore] = useState(92);
-  const [tensionScore, setTensionScore] = useState(65);
-  const [wpmScore, setWpmScore] = useState(85);
-  const [accuracyScore, setAccuracyScore] = useState(94);
-  const [comfortScore, setComfortScore] = useState(72);
+  const [keystrokeImpact, setKeystrokeImpact] = useState('normal');
+  const [tremorDetection, setTremorDetection] = useState('normal');
+  const [excessiveMovement, setExcessiveMovement] = useState('normal');
+  const [prolongedUse, setProlongedUse] = useState('normal');
+  const [jointSwelling, setJointSwelling] = useState('warning');
+  const [typingAngle, setTypingAngle] = useState('alert');
+  const [agentSummary, setAgentSummary] = useState('Your typing posture has been stable today with minor fluctuations in finger tension. Consider taking a 5-minute break to perform wrist rotations and finger stretches. Your impact scores are excellent, indicating good keystroke pressure control.');
   const [typingTime, setTypingTime] = useState(142); // minutes
   const [nextBreak, setNextBreak] = useState(18); // minutes
   const [indexValue, setIndexValue] = useState(25);
@@ -51,13 +57,8 @@ export default function LandingPage() {
       setTypingTime(prev => prev + 1);
       setNextBreak(prev => Math.max(0, prev - 1));
       
-      // Simulate metric updates
-      setTiltScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 5))));
-      setImpactScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 3))));
-      setTensionScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 8))));
-      setWpmScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 4))));
-      setAccuracyScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 2))));
-      setComfortScore(prev => Math.round(Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 6))));
+      // Fetch real data from backend
+      fetchHealthData();
       
       // Simulate finger sensor data
       setIndexValue(prev => Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 10)));
@@ -71,6 +72,55 @@ export default function LandingPage() {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
+
+  const fetchHealthData = async () => {
+    try {
+      // Mock data for now - replace with actual API call
+      const mockData = {
+        overall_status: "normal",
+        keystrike_impact: { status: "normal", explanation: "No hard strikes detected" },
+        tremor_detection: { status: "normal", explanation: "No tremors detected" },
+        excessive_movement: { status: "warning", explanation: "Some movement detected" },
+        prolonged_use: { status: "normal", explanation: "Usage within normal limits" },
+        summary: "Your finger health indicators are mostly within normal ranges with minor movement alerts."
+      };
+      
+      setKeystrokeImpact(mockData.keystrike_impact.status);
+      setTremorDetection(mockData.tremor_detection.status);
+      setExcessiveMovement(mockData.excessive_movement.status);
+      setProlongedUse(mockData.prolonged_use.status);
+      setAgentSummary(mockData.summary);
+    } catch (error) {
+      console.error('Failed to fetch health data:', error);
+    }
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'normal': return 'Good';
+      case 'warning': return 'Warning';
+      case 'alert': return 'Alert';
+      default: return 'Unknown';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'normal': return '#4caf50';
+      case 'warning': return '#ff9800';
+      case 'alert': return '#f44336';
+      default: return '#9e9e9e';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'normal': return <TaskAltIcon />;
+      case 'warning': return <WarningIcon />;
+      case 'alert': return <CloseIcon />;
+      default: return <TaskAltIcon />;
+    }
   };
 
   const getScoreColor = (score: number) => {
@@ -166,7 +216,7 @@ export default function LandingPage() {
             margin: 0,
             lineHeight: '1.5'
           }}>
-            Your typing posture has been stable today with minor fluctuations in finger tension. Consider taking a 5-minute break to perform wrist rotations and finger stretches. Your impact scores are excellent, indicating good keystroke pressure control.
+            {agentSummary}
           </p>
         </div>
 
@@ -179,249 +229,423 @@ export default function LandingPage() {
           flexShrink: 0,
           marginBottom: '20px'
         }}>
-          {/* Tilt Score */}
+          {/* Keystroke Impact */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.05)',
             borderRadius: '12px',
-            padding: '16px',
+            padding: '20px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)'
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+            transition: 'all 0.2s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.4)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.transform = 'translateY(0)';
           }}>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              margin: '0 0 8px 0',
-              color: '#888888'
-            }}>
-              Tilt
-            </h3>
-            <p style={{
-              fontSize: '32px',
-              fontWeight: '700',
-              margin: '0 0 8px 0',
-              color: getScoreColor(tiltScore)
-            }}>
-              {tiltScore}
-            </p>
             <div style={{
-              width: '100%',
-              height: '4px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '2px',
-              overflow: 'hidden'
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              minHeight: '100px'
             }}>
+              {/* Top Section - Icon and Title */}
               <div style={{
-                width: `${tiltScore}%`,
-                height: '100%',
-                background: getScoreColor(tiltScore),
-                borderRadius: '2px',
-                transition: 'width 0.3s ease'
-              }} />
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: `${getStatusColor(keystrokeImpact)}20`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  color: getStatusColor(keystrokeImpact)
+                }}>
+                  {getStatusIcon(keystrokeImpact)}
+                </div>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  margin: 0,
+                  color: getStatusColor(keystrokeImpact)
+                }}>
+                  Keystroke Impact
+                </h3>
+              </div>
+              
+              {/* Bottom Section - Description */}
+              <p style={{
+                fontSize: '14px',
+                color: '#cccccc',
+                margin: 0,
+                lineHeight: '1.4',
+                textAlign: 'left'
+              }}>
+                {keystrokeImpact === 'normal' ? 'Your typing pressure is within healthy limits. No hard strikes detected.' : 
+                 keystrokeImpact === 'warning' ? 'Moderate keystroke pressure detected. Consider lighter typing.' :
+                 'High keystroke pressure detected. Take breaks and adjust typing technique.'}
+              </p>
             </div>
           </div>
 
-          {/* Impact Score */}
+          {/* Tremor Detection */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.05)',
             borderRadius: '12px',
-            padding: '16px',
+            padding: '20px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)'
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+            transition: 'all 0.2s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.4)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.transform = 'translateY(0)';
           }}>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              margin: '0 0 8px 0',
-              color: '#888888'
-            }}>
-              Impact
-            </h3>
-            <p style={{
-              fontSize: '32px',
-              fontWeight: '700',
-              margin: '0 0 8px 0',
-              color: getScoreColor(impactScore)
-            }}>
-              {impactScore}
-            </p>
             <div style={{
-              width: '100%',
-              height: '4px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '2px',
-              overflow: 'hidden'
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              minHeight: '100px'
             }}>
+              {/* Top Section - Icon and Title */}
               <div style={{
-                width: `${impactScore}%`,
-                height: '100%',
-                background: getScoreColor(impactScore),
-                borderRadius: '2px',
-                transition: 'width 0.3s ease'
-              }} />
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: `${getStatusColor(tremorDetection)}20`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  color: getStatusColor(tremorDetection)
+                }}>
+                  {getStatusIcon(tremorDetection)}
+                </div>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  margin: 0,
+                  color: getStatusColor(tremorDetection)
+                }}>
+                  Tremor Detection
+                </h3>
+              </div>
+              
+              {/* Bottom Section - Description */}
+              <p style={{
+                fontSize: '14px',
+                color: '#cccccc',
+                margin: 0,
+                lineHeight: '1.4',
+                textAlign: 'left'
+              }}>
+                {tremorDetection === 'normal' ? 'Hand movement is stable. No tremors detected during typing.' : 
+                 tremorDetection === 'warning' ? 'Minor hand tremors detected. Consider taking a break.' :
+                 'Significant tremors detected. Rest your hands and consider ergonomic adjustments.'}
+              </p>
             </div>
           </div>
 
-          {/* Tension Score */}
+          {/* Excessive Movement */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.05)',
             borderRadius: '12px',
-            padding: '16px',
+            padding: '20px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)'
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+            transition: 'all 0.2s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.4)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.transform = 'translateY(0)';
           }}>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              margin: '0 0 8px 0',
-              color: '#888888'
-            }}>
-              Tension
-            </h3>
-            <p style={{
-              fontSize: '32px',
-              fontWeight: '700',
-              margin: '0 0 8px 0',
-              color: getScoreColor(tensionScore)
-            }}>
-              {tensionScore}
-            </p>
             <div style={{
-              width: '100%',
-              height: '4px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '2px',
-              overflow: 'hidden'
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              minHeight: '100px'
             }}>
+              {/* Top Section - Icon and Title */}
               <div style={{
-                width: `${tensionScore}%`,
-                height: '100%',
-                background: getScoreColor(tensionScore),
-                borderRadius: '2px',
-                transition: 'width 0.3s ease'
-              }} />
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: `${getStatusColor(excessiveMovement)}20`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  color: getStatusColor(excessiveMovement)
+                }}>
+                  {getStatusIcon(excessiveMovement)}
+                </div>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  margin: 0,
+                  color: getStatusColor(excessiveMovement)
+                }}>
+                  Excessive Movement
+                </h3>
+              </div>
+              
+              {/* Bottom Section - Description */}
+              <p style={{
+                fontSize: '14px',
+                color: '#cccccc',
+                margin: 0,
+                lineHeight: '1.4',
+                textAlign: 'left'
+              }}>
+                {excessiveMovement === 'normal' ? 'Hand movement patterns are normal. Good ergonomic positioning maintained.' : 
+                 excessiveMovement === 'warning' ? 'Excessive hand movements detected. Consider adjusting workspace setup.' :
+                 'High levels of unnecessary movement detected. Review ergonomic setup and take frequent breaks.'}
+              </p>
             </div>
           </div>
 
-          {/* WPM Score */}
+          {/* Prolonged Use */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.05)',
             borderRadius: '12px',
-            padding: '16px',
+            padding: '20px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)'
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+            transition: 'all 0.2s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.4)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.transform = 'translateY(0)';
           }}>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              margin: '0 0 8px 0',
-              color: '#888888'
-            }}>
-              WPM
-            </h3>
-            <p style={{
-              fontSize: '32px',
-              fontWeight: '700',
-              margin: '0 0 8px 0',
-              color: getScoreColor(wpmScore)
-            }}>
-              {wpmScore}
-            </p>
             <div style={{
-              width: '100%',
-              height: '4px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '2px',
-              overflow: 'hidden'
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              minHeight: '100px'
             }}>
+              {/* Top Section - Icon and Title */}
               <div style={{
-                width: `${wpmScore}%`,
-                height: '100%',
-                background: getScoreColor(wpmScore),
-                borderRadius: '2px',
-                transition: 'width 0.3s ease'
-              }} />
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: `${getStatusColor(prolongedUse)}20`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  color: getStatusColor(prolongedUse)
+                }}>
+                  {getStatusIcon(prolongedUse)}
+                </div>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  margin: 0,
+                  color: getStatusColor(prolongedUse)
+                }}>
+                  Prolonged Use
+                </h3>
+              </div>
+              
+              {/* Bottom Section - Description */}
+              <p style={{
+                fontSize: '14px',
+                color: '#cccccc',
+                margin: 0,
+                lineHeight: '1.4',
+                textAlign: 'left'
+              }}>
+                {prolongedUse === 'normal' ? 'Usage duration is within healthy limits. Regular breaks are being taken.' : 
+                 prolongedUse === 'warning' ? 'Extended usage detected. Consider taking a break soon.' :
+                 'Prolonged continuous usage detected. Take an immediate break to prevent strain.'}
+              </p>
             </div>
           </div>
 
-          {/* Accuracy Score */}
+          {/* Joint Swelling */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.05)',
             borderRadius: '12px',
-            padding: '16px',
+            padding: '20px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)'
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+            transition: 'all 0.2s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.4)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.transform = 'translateY(0)';
           }}>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              margin: '0 0 8px 0',
-              color: '#888888'
-            }}>
-              Accuracy
-            </h3>
-            <p style={{
-              fontSize: '32px',
-              fontWeight: '700',
-              margin: '0 0 8px 0',
-              color: getScoreColor(accuracyScore)
-            }}>
-              {accuracyScore}
-            </p>
             <div style={{
-              width: '100%',
-              height: '4px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '2px',
-              overflow: 'hidden'
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              minHeight: '100px'
             }}>
+              {/* Top Section - Icon and Title */}
               <div style={{
-                width: `${accuracyScore}%`,
-                height: '100%',
-                background: getScoreColor(accuracyScore),
-                borderRadius: '2px',
-                transition: 'width 0.3s ease'
-              }} />
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: `${getStatusColor(jointSwelling)}20`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  color: getStatusColor(jointSwelling)
+                }}>
+                  {getStatusIcon(jointSwelling)}
+                </div>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  margin: 0,
+                  color: getStatusColor(jointSwelling)
+                }}>
+                  Joint Swelling
+                </h3>
+              </div>
+              
+              {/* Bottom Section - Description */}
+              <p style={{
+                fontSize: '14px',
+                color: '#cccccc',
+                margin: 0,
+                lineHeight: '1.4',
+                textAlign: 'left'
+              }}>
+                {jointSwelling === 'normal' ? 'No joint swelling detected. Finger joints appear healthy.' : 
+                 jointSwelling === 'warning' ? 'Minor joint swelling detected. Consider anti-inflammatory measures.' :
+                 'Significant joint swelling detected. Consult a healthcare professional.'}
+              </p>
             </div>
           </div>
 
-          {/* Comfort Score */}
+          {/* Typing Angle */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.05)',
             borderRadius: '12px',
-            padding: '16px',
+            padding: '20px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)'
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+            transition: 'all 0.2s ease',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.4)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.transform = 'translateY(0)';
           }}>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              margin: '0 0 8px 0',
-              color: '#888888'
-            }}>
-              Comfort
-            </h3>
-            <p style={{
-              fontSize: '32px',
-              fontWeight: '700',
-              margin: '0 0 8px 0',
-              color: getScoreColor(comfortScore)
-            }}>
-              {comfortScore}
-            </p>
             <div style={{
-              width: '100%',
-              height: '4px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '2px',
-              overflow: 'hidden'
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              minHeight: '100px'
             }}>
+              {/* Top Section - Icon and Title */}
               <div style={{
-                width: `${comfortScore}%`,
-                height: '100%',
-                background: getScoreColor(comfortScore),
-                borderRadius: '2px',
-                transition: 'width 0.3s ease'
-              }} />
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: `${getStatusColor(typingAngle)}20`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  color: getStatusColor(typingAngle)
+                }}>
+                  {getStatusIcon(typingAngle)}
+                </div>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  margin: 0,
+                  color: getStatusColor(typingAngle)
+                }}>
+                  Typing Angle
+                </h3>
+              </div>
+              
+              {/* Bottom Section - Description */}
+              <p style={{
+                fontSize: '14px',
+                color: '#cccccc',
+                margin: 0,
+                lineHeight: '1.4',
+                textAlign: 'left'
+              }}>
+                {typingAngle === 'normal' ? 'Wrist angle is optimal for healthy typing posture.' : 
+                 typingAngle === 'warning' ? 'Wrist angle deviation detected. Adjust keyboard position.' :
+                 'Poor wrist angle detected. Immediate ergonomic adjustment needed to prevent injury.'}
+              </p>
             </div>
           </div>
         </div>
