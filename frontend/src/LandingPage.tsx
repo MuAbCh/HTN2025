@@ -49,7 +49,7 @@ const STATUS_MESSAGES = {
 		alert: "Prolonged static positioning detected - stretch and flex your fingers now",
 	},
 	bursts: {
-		normal: "Smooth, controlled finger movements",
+		normal: "Smooth, controlled finger movements - excellent technique",
 		warning: "Some erratic movements detected - slow down and focus on control",
 		alert: "Excessive jerky movements detected - take a break and reset your posture",
 	},
@@ -88,18 +88,7 @@ export default function LandingPage() {
 	});
 
 	const [stats, setStats] = useState<Stats | null>(null);
-	const [notifications, setNotifications] = useState<NotificationItem[] | null>([{
-		name: "Welcome!",
-		type: "alert",
-		message: "Welcome to Clau! Your ergonomic assistant is now active.",
-		timestamp: new Date(Date.now()),
-	},
-	{
-		name: "Welcome!",
-		type: "exercise",
-		message: "Welcome to Clau! Your ergonomic assistant is now active.",
-		timestamp: new Date(Date.now()),
-	}]);
+	const [notifications, setNotifications] = useState<NotificationItem[] | null>([]);
 
 	const [pressureLeftRing, setPressureLeftRing] = useState<number[]>([]);
 	const [pressureRightRing, setPressureRightRing] = useState<number[]>([]);
@@ -275,13 +264,13 @@ export default function LandingPage() {
 	}, [stats?.extremeTiltNorm, stats?.pressure]);
 
 	const staticHoldStatus = useMemo(() => {
-		const status = getNormStatus((stats?.staticHoldNorm || 0) * 400);
+		const status = getNormStatus(stats?.staticHoldNorm || 0);
 		sendNotificationIfNeeded("staticHold", status);
 		return status;
 	}, [stats?.staticHoldNorm]);
 
 	const burstsStatus = useMemo(() => {
-		const status = getNormStatus((stats?.burstsNorm || 0) * 100);
+		const status = getNormStatus(stats?.burstsNorm || 0);
 		sendNotificationIfNeeded("bursts", status);
 		return status;
 	}, [stats?.burstsNorm]);
@@ -584,7 +573,7 @@ export default function LandingPage() {
 										color: getStatusColor(staticHoldStatus),
 									}}
 								>
-									Hand Mobility
+									Excessive Movement
 								</h3>
 							</div>
 
@@ -661,7 +650,7 @@ export default function LandingPage() {
 										color: getStatusColor(burstsStatus)
 									}}
 								>
-									Finger Jerk
+									Sudden Movements
 								</h3>
 							</div>
 
@@ -1024,7 +1013,6 @@ export default function LandingPage() {
 					background: "rgba(255, 255, 255, 0.02)",
 					borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
 					position: "relative",
-					width: "25%"
 				}}
 			>
 				<div
