@@ -48,8 +48,8 @@ function Finger({ value, position }: FingerProps) {
 			<group ref={baseRef}>
 				<mesh position={[0, 0.5, 0]}>
 					<capsuleGeometry args={[0.30, 0.8, 4, 16]} />
-					<meshToonMaterial 
-						color="#00ffff" 
+					<meshToonMaterial
+						color="#00ffff"
 						transparent={true}
 						opacity={0.85}
 						emissive="#004444"
@@ -61,8 +61,8 @@ function Finger({ value, position }: FingerProps) {
 				<group ref={middleRef} position={[0, 1, 0]}>
 					<mesh position={[0, 0.35, 0]}>
 						<capsuleGeometry args={[0.26, 0.6, 4, 16]} />
-						<meshToonMaterial 
-							color="#00ffff" 
+						<meshToonMaterial
+							color="#00ffff"
 							transparent={true}
 							opacity={0.85}
 							emissive="#004444"
@@ -74,8 +74,8 @@ function Finger({ value, position }: FingerProps) {
 					<group ref={tipRef} position={[0, 0.8, 0]}>
 						<mesh position={[0, 0.25, 0]}>
 							<capsuleGeometry args={[0.22, 0.4, 4, 16]} />
-							<meshToonMaterial 
-								color="#00ffff" 
+							<meshToonMaterial
+								color="#00ffff"
 								transparent={true}
 								opacity={0.85}
 								emissive="#004444"
@@ -167,39 +167,35 @@ export default function TwoFingers({ indexValue, middleValue }: TwoFingersProps)
 	}, [middleValue]);
 
 	return (
-		<div style={{ width: '100%', height: '100%', position: 'relative' }}>
+		<div style={{ width: "100%", height: "100%", position: "relative" }}>
 			<Canvas
-				camera={{
-					position: cameraPosition,
-					fov: 60
-				}}
+				camera={{ position: cameraPosition, fov: 60 }}
 				onCreated={({ camera }) => {
 					camera.lookAt(0, 0, 0);
 				}}
-				style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%)', width: '100%', height: '100%' }}
+				style={{
+					background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%)",
+					width: "100%",
+					height: "100%",
+				}}
 			>
 				<ambientLight intensity={0.4} />
 				<directionalLight position={[10, 10, 5]} intensity={0.8} color="#00ffff" />
 				<pointLight position={[0, 5, 0]} intensity={0.5} color="#00ffff" />
-        
+
 				{/* Hologram scan lines effect */}
 				<mesh position={[0, 0, -2]}>
 					<planeGeometry args={[10, 10]} />
-					<meshBasicMaterial 
-						color="#00ffff" 
-						transparent={true}
-						opacity={0.05}
-						side={2}
-					/>
+					<meshBasicMaterial color="#00ffff" transparent={true} opacity={0.05} side={2} />
 				</mesh>
-        
+
 				{/* Hand rotated so fingertips point downward */}
 				<group rotation={[Math.PI / 2, 0, 0]} position={[0, 0.5, 0]}>
 					{/* Hand base connecting the fingers */}
 					<mesh position={[0, -0.3, 0]} rotation={[0, 0, Math.PI / 2]}>
 						<capsuleGeometry args={[0.3, 1.2, 4, 16]} />
-						<meshToonMaterial 
-							color="#00ffff" 
+						<meshToonMaterial
+							color="#00ffff"
 							transparent={true}
 							opacity={0.85}
 							emissive="#004444"
@@ -227,7 +223,7 @@ export default function TwoFingers({ indexValue, middleValue }: TwoFingersProps)
 					onMiddleChange={setLocalMiddleValue}
 				/>
 			)}
-			
+
 			{/* Toggle Controls Button */}
 			<button
 				onClick={() => setShowControls(!showControls)}
@@ -243,7 +239,7 @@ export default function TwoFingers({ indexValue, middleValue }: TwoFingersProps)
 					cursor: "pointer",
 					fontWeight: "bold",
 					fontSize: "12px",
-					boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+					boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
 				}}
 			>
 				{showControls ? "Hide Controls" : "Show Controls"}
@@ -265,7 +261,7 @@ export default function TwoFingers({ indexValue, middleValue }: TwoFingersProps)
 					fontSize: "14px",
 					boxShadow: "0 4px 12px rgba(255, 107, 53, 0.3)",
 					transition: "all 0.2s ease",
-					zIndex: 20
+					zIndex: 20,
 				}}
 				onMouseEnter={(e) => {
 					e.currentTarget.style.transform = "translateY(-2px)";
@@ -282,7 +278,6 @@ export default function TwoFingers({ indexValue, middleValue }: TwoFingersProps)
 			>
 				Do Exercises
 			</button>
-			
 		</div>
 	);
 }

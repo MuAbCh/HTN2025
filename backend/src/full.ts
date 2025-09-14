@@ -1,6 +1,6 @@
-// index.ts
-import { SerialPort } from "serialport";
-import { ReadlineParser } from "serialport";
+import { createServer } from "http";
+import { Server, type Socket } from "socket.io";
+import { ReadlineParser, SerialPort } from "serialport";
 
 const TICK_MS = 1000; // feature update cadence
 const WINDOW_SECS = 10; // rolling window for % metrics
@@ -27,6 +27,7 @@ const WEIGHTS = {
 
 const port = new SerialPort({ path: "/dev/tty.usbserial-A5069RR4", baudRate: 9600 });
 const parser = port.pipe(new ReadlineParser({ delimiter: "\n" }));
+let socket: Socket | undefined;
 
 type Sample = { t: number; v: number };
 
@@ -134,8 +135,6 @@ function onData(line: string) {
 	}
 }
 
-setInterval(tick, TICK_MS);
-
 function tick() {
 	prune();
 
@@ -220,6 +219,20 @@ function tick() {
 		}m`,
 	);
 	if (warnings.length) console.log("Warnings:", "• " + warnings.join("  • "));
+
+	const data = {
+		risk: riskScore,
+		pressure: pressNow,
+		tilt: tiltNow,
+		heavyPressNorm: heavy_press_pct / 100,
+		staticHoldNorm: static_hold_norm,
+		burstsNorm: burst_norm,
+		extremeTiltNorm: extreme_tilt_pct / 100,
+		staticHoldStreakSec: state.staticHoldStreakSec,
+		minutesSinceBreak,
+	};
+
+	socket?.emit("update", data);
 }
 
 function sumBool(a: boolean[]) {
@@ -238,3 +251,13 @@ function logOnce(msg: string) {
 	_logged = true;
 	console.log(msg);
 }
+
+setInterval(tick, TICK_MS);
+
+const server = createServer();
+const io = new Server(server, { cors: { origin: "*" } });
+server.listen(4000);
+
+io.on("connection", (s) => {
+	socket = s;
+});
