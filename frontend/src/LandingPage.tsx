@@ -90,10 +90,9 @@ export default function LandingPage() {
 
 	const [stats, setStats] = useState<Stats | null>(null);
 	const [notifications, setNotifications] = useState<NotificationItem[] | null>([{
-		type: "info",
+		type: "alert",
 		message: "Welcome to Clau! Your ergonomic assistant is now active.",
 		timestamp: new Date(Date.now()),
-		read: false,
 	}]);
 
 	const [pressureLeftRing, setPressureLeftRing] = useState<number[]>([]);
@@ -179,11 +178,11 @@ export default function LandingPage() {
 	const getStatusColor = (status: string) => {
 		switch (status) {
 			case "normal":
-				return "#4caf50";
+				return "#caf2c2";
 			case "warning":
-				return "#ff9800";
+				return "#fff8b8";
 			case "alert":
-				return "#f44336";
+				return "#ffd6c9";
 			default:
 				return "#9e9e9e";
 		}
@@ -270,7 +269,7 @@ export default function LandingPage() {
 			{/* Left Panel - Stats and Controls */}
 			<div
 				style={{
-					flex: "2",
+					flex: "1",
 					padding: "24px",
 					display: "flex",
 					flexDirection: "column",
@@ -338,7 +337,6 @@ export default function LandingPage() {
 						gridTemplateRows: "1fr 1fr",
 						gap: "16px",
 						flexShrink: 0,
-						marginBottom: "20px",
 					}}
 				>
 					{/* Risk Score */}
@@ -815,13 +813,13 @@ export default function LandingPage() {
 				>
 					<h3
 						style={{
-							fontSize: "16px",
+							fontSize: "18px",
 							fontWeight: "600",
 							margin: "0 0 16px 0",
-							color: "#00ffff",
+							color: "#cccccc",
 						}}
 					>
-						Smart Health Alerts
+						Health Alerts
 					</h3>
 
 					<div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -831,16 +829,15 @@ export default function LandingPage() {
 							new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
 						).map((notif) => (
 							<div
-								key={notif.id}
+								key={notif.timestamp.toString()}
 								style={{
-									background: "rgba(255, 165, 0, 0.1)",
+									background: "#101624",
 									borderRadius: "8px",
 									padding: "12px",
-									border: "1px solid rgba(255, 165, 0, 0.3)",
+									border: "1px solid #2a6f97",
 									display: "flex",
 									alignItems: "center",
 									justifyContent: "center",
-
 									gap: "12px",
 								}}
 							>
@@ -849,7 +846,7 @@ export default function LandingPage() {
 										width: "6px",
 										height: "6px",
 										borderRadius: "50%",
-										background: "#ffa500",
+										background: "#2a6f97",
 										marginTop: "6px",
 										flexShrink: 0,
 									}}
@@ -860,7 +857,7 @@ export default function LandingPage() {
 											fontSize: "14px",
 											fontWeight: "600",
 											margin: "0 0 4px 0",
-											color: "#ffa500",
+											color: "#6adcf9ff",
 										}}
 									>
 										Ergonomic Alert
@@ -907,10 +904,10 @@ export default function LandingPage() {
 				>
 					<h3
 						style={{
-							fontSize: "16px",
+							fontSize: "18px",
 							fontWeight: "600",
 							margin: "0 0 16px 0",
-							color: "#00ffff",
+							color: "#cccccc",
 						}}
 					>
 						Exercises
@@ -923,12 +920,12 @@ export default function LandingPage() {
 							new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
 						).map((notif) => (
 							<div
-								key={notif.id}
+								key={notif.timestamp.toString()}
 								style={{
-									background: "rgba(255, 165, 0, 0.1)",
+									background: "#101624",
 									borderRadius: "8px",
 									padding: "12px",
-									border: "1px solid rgba(255, 165, 0, 0.3)",
+									border: "1px solid #2a6f97",
 									display: "flex",
 									alignItems: "center",
 									justifyContent: "center",
@@ -940,7 +937,7 @@ export default function LandingPage() {
 										width: "6px",
 										height: "6px",
 										borderRadius: "50%",
-										background: "#ffa500",
+										background: "#2a6f97",
 										marginTop: "6px",
 										flexShrink: 0,
 									}}
@@ -951,7 +948,7 @@ export default function LandingPage() {
 											fontSize: "14px",
 											fontWeight: "600",
 											margin: "0 0 4px 0",
-											color: "#ffa500",
+											color: "#6adcf9ff",
 										}}
 									>
 										Ergonomic Alert

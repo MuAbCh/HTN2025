@@ -49,7 +49,7 @@ function Finger({ value, position }: FingerProps) {
 				<mesh position={[0, 0.5, 0]}>
 					<capsuleGeometry args={[0.30, 0.8, 4, 16]} />
 					<meshToonMaterial
-						color="#00ffff"
+						color="#c3eefa"
 						transparent={true}
 						opacity={0.85}
 						emissive="#004444"
@@ -62,7 +62,7 @@ function Finger({ value, position }: FingerProps) {
 					<mesh position={[0, 0.35, 0]}>
 						<capsuleGeometry args={[0.26, 0.6, 4, 16]} />
 						<meshToonMaterial
-							color="#00ffff"
+							color="#c3eefa"
 							transparent={true}
 							opacity={0.85}
 							emissive="#004444"
@@ -75,7 +75,7 @@ function Finger({ value, position }: FingerProps) {
 						<mesh position={[0, 0.25, 0]}>
 							<capsuleGeometry args={[0.22, 0.4, 4, 16]} />
 							<meshToonMaterial
-								color="#00ffff"
+								color="#c3eefa"
 								transparent={true}
 								opacity={0.85}
 								emissive="#004444"
@@ -180,13 +180,13 @@ export default function TwoFingers({ indexValue, middleValue }: TwoFingersProps)
 				}}
 			>
 				<ambientLight intensity={0.4} />
-				<directionalLight position={[10, 10, 5]} intensity={0.8} color="#00ffff" />
-				<pointLight position={[0, 5, 0]} intensity={0.5} color="#00ffff" />
+				<directionalLight position={[10, 10, 5]} intensity={0.8} color="#c3eefa" />
+				<pointLight position={[0, 5, 0]} intensity={0.5} color="#c3eefa" />
 
 				{/* Hologram scan lines effect */}
 				<mesh position={[0, 0, -2]}>
 					<planeGeometry args={[10, 10]} />
-					<meshBasicMaterial color="#00ffff" transparent={true} opacity={0.05} side={2} />
+					<meshBasicMaterial color="#c3eefa" transparent={true} opacity={0.05} side={2} />
 				</mesh>
 
 				{/* Hand rotated so fingertips point downward */}
@@ -195,7 +195,7 @@ export default function TwoFingers({ indexValue, middleValue }: TwoFingersProps)
 					<mesh position={[0, -0.3, 0]} rotation={[0, 0, Math.PI / 2]}>
 						<capsuleGeometry args={[0.3, 1.2, 4, 16]} />
 						<meshToonMaterial
-							color="#00ffff"
+							color="#c3eefa"
 							transparent={true}
 							opacity={0.85}
 							emissive="#004444"
@@ -232,7 +232,7 @@ export default function TwoFingers({ indexValue, middleValue }: TwoFingersProps)
 					top: 20,
 					right: 20,
 					padding: "10px 15px",
-					backgroundColor: "rgba(0, 255, 255, 0.8)",
+					backgroundColor: "#c3eefa",
 					color: "#000",
 					border: "none",
 					borderRadius: "6px",
@@ -243,40 +243,6 @@ export default function TwoFingers({ indexValue, middleValue }: TwoFingersProps)
 				}}
 			>
 				{showControls ? "Hide Controls" : "Show Controls"}
-			</button>
-
-			{/* Do Exercises Button */}
-			<button
-				style={{
-					position: "absolute",
-					bottom: "20px",
-					right: "20px",
-					padding: "12px 24px",
-					background: "linear-gradient(135deg, #ff6b35, #ff8c42)",
-					color: "#fff",
-					border: "none",
-					borderRadius: "8px",
-					cursor: "pointer",
-					fontWeight: "600",
-					fontSize: "14px",
-					boxShadow: "0 4px 12px rgba(255, 107, 53, 0.3)",
-					transition: "all 0.2s ease",
-					zIndex: 20,
-				}}
-				onMouseEnter={(e) => {
-					e.currentTarget.style.transform = "translateY(-2px)";
-					e.currentTarget.style.boxShadow = "0 6px 16px rgba(255, 107, 53, 0.4)";
-				}}
-				onMouseLeave={(e) => {
-					e.currentTarget.style.transform = "translateY(0)";
-					e.currentTarget.style.boxShadow = "0 4px 12px rgba(255, 107, 53, 0.3)";
-				}}
-				onClick={() => {
-					// TODO: Implement exercise functionality
-					console.log("Starting exercises...");
-				}}
-			>
-				Do Exercises
 			</button>
 		</div>
 	);
