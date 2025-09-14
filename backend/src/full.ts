@@ -9,7 +9,7 @@ const EMA_ALPHA = 0.3; // smoothing for risk score
 
 const PRESS_ZERO = 5; // ~stationary
 const PRESS_LIGHT_MIN = 10;
-const PRESS_HEAVY_MIN = 40;
+const PRESS_HEAVY_MIN = 150;
 const ACC_SLIGHT = 10; // axis delta
 const ACC_REACH = 14; // magnitude spike
 const ACC_STATIC = 5; // "static hold" threshold
@@ -18,9 +18,9 @@ const TILT_NEUTRAL_MIN = 650; // not rotated
 
 // risk weights
 const WEIGHTS = {
-	heavy_press_pct: 0.35,
-	extreme_tilt_pct: 0.25, // % time hand is sideways
-	static_hold_norm: 0.20,
+	heavy_press_pct: 0.55,
+	extreme_tilt_pct: 0.15, // % time hand is sideways
+	static_hold_norm: 0.10,
 	burst_norm: 0.10,
 	microbreak_norm: 0.10,
 };
@@ -223,11 +223,13 @@ function tick() {
 	const data = {
 		risk: riskScore,
 		pressure: pressNow,
+		pressureLeftNorm: clamp01(state.latest.pressure2 / 18),
+		pressureRightNorm: clamp01(state.latest.pressure1 / 70),
 		tilt: tiltNow,
-		heavyPressNorm: heavy_press_pct / 100,
+		heavyPressNorm: heavy_press_pct,
 		staticHoldNorm: static_hold_norm,
 		burstsNorm: burst_norm,
-		extremeTiltNorm: extreme_tilt_pct / 100,
+		extremeTiltNorm: extreme_tilt_pct,
 		staticHoldStreakSec: state.staticHoldStreakSec,
 		minutesSinceBreak,
 	};

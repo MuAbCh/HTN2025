@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 import { io } from "socket.io-client";
 import TwoFingers from "./TwoFingers";
 
+const PRESSURE_RING_BUFFER_SIZE = 8;
+
 interface NotificationItem {
 	id: string;
 	type: "stretch" | "break" | "posture" | "info";
@@ -18,6 +20,8 @@ interface NotificationItem {
 interface Stats {
 	risk: number;
 	pressure: number;
+	pressureLeftNorm: number;
+	pressureRightNorm: number;
 	tilt: number;
 	heavyPressNorm: number;
 	staticHoldNorm: number;
@@ -30,17 +34,9 @@ interface Stats {
 const socket = io("http://localhost:4000");
 
 export default function LandingPage() {
-	const [keystrokeImpact, setKeystrokeImpact] = useState("normal");
-	const [tremorDetection, setTremorDetection] = useState("normal");
-	const [excessiveMovement, setExcessiveMovement] = useState("normal");
-	const [prolongedUse, setProlongedUse] = useState("normal");
-	const [jointSwelling, setJointSwelling] = useState("warning");
-	const [typingAngle, setTypingAngle] = useState("alert");
-	const [agentSummary, setAgentSummary] = useState(
-		"Your typing posture has been stable today with minor fluctuations in finger tension. Consider taking a 5-minute break to perform wrist rotations and finger stretches. Your impact scores are excellent, indicating good keystroke pressure control.",
-	);
-	const [typingTime, setTypingTime] = useState(142); // minutes
-	const [nextBreak, setNextBreak] = useState(18); // minutes
+	// const [agentSummary, setAgentSummary] = useState(
+	// 	"Your typing posture has been stable today with minor fluctuations in finger tension. Consider taking a 5-minute break to perform wrist rotations and finger stretches. Your impact scores are excellent, indicating good keystroke pressure control.",
+	// );
 	const [indexValue, setIndexValue] = useState(25);
 	const [middleValue, setMiddleValue] = useState(30);
 
@@ -65,10 +61,39 @@ export default function LandingPage() {
 		read: true,
 	}]);
 
+	const [pressureLeftRing, setPressureLeftRing] = useState<number[]>([]);
+	const [pressureRightRing, setPressureRightRing] = useState<number[]>([]);
+
+	const addPressureLeft = (value: number) => {
+		setPressureLeftRing((prev) => {
+			const newValues = [...prev, value * 100];
+			return newValues.slice(-PRESSURE_RING_BUFFER_SIZE);
+		});
+	};
+
+	const addPressureRight = (value: number) => {
+		setPressureRightRing((prev) => {
+			const newValues = [...prev, value * 100];
+			return newValues.slice(-PRESSURE_RING_BUFFER_SIZE);
+		});
+	};
+
+	const pressureLeft = useMemo(() => {
+		if (pressureLeftRing.length < 0.5 * PRESSURE_RING_BUFFER_SIZE) return 0;
+		return pressureLeftRing.reduce((acc, val) => acc + val, 0) / pressureLeftRing.length;
+	}, [pressureLeftRing]);
+
+	const pressureRight = useMemo(() => {
+		if (pressureRightRing.length < 0.5 * PRESSURE_RING_BUFFER_SIZE) return 0;
+		return pressureRightRing.reduce((acc, val) => acc + val, 0) / pressureRightRing.length;
+	}, [pressureRightRing]);
+
 	useEffect(() => {
 		function onUpdate(value: Stats) {
 			console.log(value);
 			setStats(value);
+			addPressureLeft(value.pressureLeftNorm);
+			addPressureRight(value.pressureRightNorm);
 		}
 		socket.on("update", onUpdate);
 		return () => {
@@ -76,50 +101,10 @@ export default function LandingPage() {
 		};
 	}, []);
 
-	// Simulate real-time updates
-	useEffect(() => {
-		const interval = setInterval(() => {
-			setTypingTime((prev) => prev + 1);
-			setNextBreak((prev) => Math.max(0, prev - 1));
-
-			// Fetch real data from backend
-			fetchHealthData();
-
-			// Simulate finger sensor data
-			setIndexValue((prev) => Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 10)));
-			setMiddleValue((prev) => Math.max(0, Math.min(100, prev + (Math.random() - 0.5) * 10)));
-		}, 60000); // Update every minute
-
-		return () => clearInterval(interval);
-	}, []);
-
 	const formatTime = (minutes: number) => {
 		const hours = Math.floor(minutes / 60);
 		const mins = minutes % 60;
 		return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-	};
-
-	const fetchHealthData = async () => {
-		try {
-			// Mock data for now - replace with actual API call
-			const mockData = {
-				overall_status: "normal",
-				keystrike_impact: { status: "normal", explanation: "No hard strikes detected" },
-				tremor_detection: { status: "normal", explanation: "No tremors detected" },
-				excessive_movement: { status: "warning", explanation: "Some movement detected" },
-				prolonged_use: { status: "normal", explanation: "Usage within normal limits" },
-				summary:
-					"Your finger health indicators are mostly within normal ranges with minor movement alerts.",
-			};
-
-			setKeystrokeImpact(mockData.keystrike_impact.status);
-			setTremorDetection(mockData.tremor_detection.status);
-			setExcessiveMovement(mockData.excessive_movement.status);
-			setProlongedUse(mockData.prolonged_use.status);
-			setAgentSummary(mockData.summary);
-		} catch (error) {
-			console.error("Failed to fetch health data:", error);
-		}
 	};
 
 	const getStatusDisplay = (status: string) => {
@@ -179,11 +164,25 @@ export default function LandingPage() {
 		return "normal";
 	};
 
-	const riskStatus = useMemo(() => getNormStatus((stats?.risk ?? 0) / 100), [stats?.risk]);
-	const heavyPressStatus = useMemo(() => getNormStatus(stats?.heavyPressNorm || 0), [stats?.heavyPressNorm]);
+	const riskStatus = useMemo(() => getNormStatus((stats?.risk ?? 0) / 70), [stats?.risk]);
+
+	const heavyPressStatus = useMemo(() => {
+		const heavyPressNorm = stats?.heavyPressNorm || 0;
+        if (heavyPressNorm >= 0.3) return "alert";
+        if (heavyPressNorm >= 0.2) return "warning";
+        return "normal";
+	}, [stats?.heavyPressNorm]);
+
+	const extremeTiltStatus = useMemo(() => {
+		const extremeTiltNorm = (stats?.extremeTiltNorm || 0);
+		const pressure = stats?.pressure || 0;
+		if (extremeTiltNorm >= 0.3 && pressure >= 20) return "alert";
+		if (extremeTiltNorm >= 0.2) return "warning";
+		return "normal";
+	}, [stats?.extremeTiltNorm, stats?.pressure]);
+
 	const staticHoldStatus = useMemo(() => getNormStatus(stats?.staticHoldNorm || 0), [stats?.staticHoldNorm]);
 	const burstsStatus = useMemo(() => getNormStatus(stats?.burstsNorm || 0), [stats?.burstsNorm]);
-	const extremeTiltStatus = useMemo(() => getNormStatus(stats?.extremeTiltNorm || 0), [stats?.extremeTiltNorm]);
 	const minutesSinceBreakStatus = useMemo(() => getNormStatus((stats?.minutesSinceBreak || 0) / 40), [stats?.minutesSinceBreak]);
 
 	return (
@@ -730,7 +729,7 @@ export default function LandingPage() {
 								}}
 							>
 								{minutesSinceBreakStatus === "normal"
-									? "No need to take a break."
+									? "Your fingers are doing fine for now."
 									: minutesSinceBreakStatus === "warning"
 									? "You've been at this for some time. Consider taking a short break."
 									: "You've been working your fingers a lot, give them some rest!"}
@@ -1121,7 +1120,7 @@ export default function LandingPage() {
 
 				<div style={{ width: "100%", height: "calc(100% - 80px)", marginTop: "104px" }}>
 					<div style={{ width: "100%", height: "100%", position: "relative" }}>
-						<TwoFingers indexValue={indexValue} middleValue={middleValue} />
+						<TwoFingers indexValue={pressureRight} middleValue={pressureLeft} />
 					</div>
 				</div>
 			</div>
