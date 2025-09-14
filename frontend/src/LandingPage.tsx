@@ -3,7 +3,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ErrorIcon from "@mui/icons-material/Error";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import WarningIcon from "@mui/icons-material/Warning";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import TwoFingers from "./TwoFingers";
 
@@ -36,55 +36,56 @@ const socket = io("http://localhost:4000");
 const STATUS_MESSAGES = {
 	risk: {
 		normal: "Your typing habits are healthy and sustainable",
-		warning: "Some strain detected - consider taking breaks more frequently", 
-		alert: "High strain levels detected - immediate rest recommended"
+		warning: "Some strain detected - consider taking breaks more frequently",
+		alert: "High strain levels detected - immediate rest recommended",
 	},
 	heavyPress: {
 		normal: "Excellent keystroke pressure - your fingers are relaxed",
 		warning: "Moderate finger strain detected - try lighter keystrokes",
-		alert: "Excessive finger pressure detected - rest and adjust technique immediately"
+		alert: "Excessive finger pressure detected - rest and adjust technique immediately",
 	},
 	staticHold: {
 		normal: "Great finger movement and flexibility maintained",
 		warning: "Your fingers need more movement - try some gentle flexing",
-		alert: "Prolonged static positioning detected - stretch and flex your fingers now"
+		alert: "Prolonged static positioning detected - stretch and flex your fingers now",
 	},
 	bursts: {
 		normal: "Smooth, controlled finger movements - excellent technique",
 		warning: "Some erratic movements detected - slow down and focus on control",
-		alert: "Excessive jerky movements detected - take a break and reset your posture"
+		alert: "Excessive jerky movements detected - take a break and reset your posture",
 	},
 	extremeTilt: {
 		normal: "Optimal wrist positioning maintained",
 		warning: "Wrist angle needs adjustment - check your keyboard height",
-		alert: "Dangerous wrist angle detected - adjust posture immediately to prevent injury"
+		alert: "Dangerous wrist angle detected - adjust posture immediately to prevent injury",
 	},
 	minutesSinceBreak: {
 		normal: "You're maintaining a healthy work rhythm",
 		warning: "Time for a micro-break - just 30 seconds of stretching will help",
-		alert: "You've been typing too long without rest - take a proper break now"
-	}
+		alert: "You've been typing too long without rest - take a proper break now",
+	},
 };
 
 // Notification messages for alerts
 const NOTIFICATION_MESSAGES = {
 	risk: "🚨 High typing strain detected! Take a break now to prevent injury.",
-	heavyPress: "⚠️ Excessive finger pressure detected! Lighten your keystrokes and rest your hands.",
+	heavyPress:
+		"⚠️ Excessive finger pressure detected! Lighten your keystrokes and rest your hands.",
 	staticHold: "🤲 Your fingers need movement! Take a moment to stretch and flex.",
 	bursts: "⚡ Too many sudden movements detected! Slow down and focus on smooth typing.",
 	extremeTilt: "🤚 Dangerous wrist angle detected! Adjust your posture immediately.",
-	minutesSinceBreak: "⏰ Time for a break! You've been typing too long without rest."
+	minutesSinceBreak: "⏰ Time for a break! You've been typing too long without rest.",
 };
 
 export default function LandingPage() {
 	const [lastNotifTime, setLastNotifTime] = useState<number | null>(null);
 	const previousStatuses = useRef({
-		risk: 'normal',
-		heavyPress: 'normal', 
-		staticHold: 'normal',
-		bursts: 'normal',
-		extremeTilt: 'normal',
-		minutesSinceBreak: 'normal'
+		risk: "normal",
+		heavyPress: "normal",
+		staticHold: "normal",
+		bursts: "normal",
+		extremeTilt: "normal",
+		minutesSinceBreak: "normal",
 	});
 
 	const [stats, setStats] = useState<Stats | null>(null);
@@ -137,33 +138,41 @@ export default function LandingPage() {
 
 	useEffect(() => {
 		Notification.requestPermission().then((result) => {
-			console.log('Notification permission:', result);
+			console.log("Notification permission:", result);
 		});
 	}, []);
 
 	// Send notification if status changes to alert and enough time has passed
-	const sendNotificationIfNeeded = (metric: keyof typeof STATUS_MESSAGES, currentStatus: string) => {
+	const sendNotificationIfNeeded = (
+		metric: keyof typeof STATUS_MESSAGES,
+		currentStatus: string,
+	) => {
 		const now = Date.now();
 		const shouldThrottle = lastNotifTime && (now - lastNotifTime) < NOTIFICATION_THROTTLE_MS;
-		
-		if (currentStatus === 'alert' && 
-			previousStatuses.current[metric] !== 'alert' && 
-			!shouldThrottle &&
-			Notification.permission === 'granted') {
-			
-			new Notification('Clau - Ergonomic Alert', {
+
+		if (
+			currentStatus === "alert"
+			&& previousStatuses.current[metric] !== "alert"
+			&& !shouldThrottle
+			&& Notification.permission === "granted"
+		) {
+			new Notification("Clau - Ergonomic Alert", {
 				body: NOTIFICATION_MESSAGES[metric],
-				icon: '/favicon.ico',
-				tag: metric // This prevents duplicate notifications for the same metric
+				icon: "/favicon.ico",
+				tag: metric, // This prevents duplicate notifications for the same metric
 			});
 
 			// set alert on the screen as well
-			let notif: NotificationItem = { type: "alert", message: NOTIFICATION_MESSAGES[metric], timestamp: new Date(Date.now()) };
+			let notif: NotificationItem = {
+				type: "alert",
+				message: NOTIFICATION_MESSAGES[metric],
+				timestamp: new Date(Date.now()),
+			};
 			setNotifications((prev) => prev ? [notif, ...prev] : [notif]);
 
 			setLastNotifTime(now);
 		}
-		
+
 		previousStatuses.current[metric] = currentStatus;
 	};
 
@@ -201,7 +210,7 @@ export default function LandingPage() {
 
 	const riskStatus = useMemo(() => {
 		const status = getNormStatus((stats?.risk ?? 0) / 70);
-		sendNotificationIfNeeded('risk', status);
+		sendNotificationIfNeeded("risk", status);
 		return status;
 	}, [stats?.risk]);
 
@@ -211,8 +220,8 @@ export default function LandingPage() {
 		if (heavyPressNorm >= 0.3) status = "alert";
 		else if (heavyPressNorm >= 0.2) status = "warning";
 		else status = "normal";
-		
-		sendNotificationIfNeeded('heavyPress', status);
+
+		sendNotificationIfNeeded("heavyPress", status);
 		return status;
 	}, [stats?.heavyPressNorm]);
 
@@ -223,26 +232,26 @@ export default function LandingPage() {
 		if (extremeTiltNorm >= 0.3 && pressure >= 20) status = "alert";
 		else if (extremeTiltNorm >= 0.2) status = "warning";
 		else status = "normal";
-		
-		sendNotificationIfNeeded('extremeTilt', status);
+
+		sendNotificationIfNeeded("extremeTilt", status);
 		return status;
 	}, [stats?.extremeTiltNorm, stats?.pressure]);
 
 	const staticHoldStatus = useMemo(() => {
 		const status = getNormStatus(stats?.staticHoldNorm || 0);
-		sendNotificationIfNeeded('staticHold', status);
+		sendNotificationIfNeeded("staticHold", status);
 		return status;
 	}, [stats?.staticHoldNorm]);
-	
+
 	const burstsStatus = useMemo(() => {
 		const status = getNormStatus(stats?.burstsNorm || 0);
-		sendNotificationIfNeeded('bursts', status);
+		sendNotificationIfNeeded("bursts", status);
 		return status;
 	}, [stats?.burstsNorm]);
-	
+
 	const minutesSinceBreakStatus = useMemo(() => {
 		const status = getNormStatus((stats?.minutesSinceBreak || 0) / 40);
-		sendNotificationIfNeeded('minutesSinceBreak', status);
+		sendNotificationIfNeeded("minutesSinceBreak", status);
 		return status;
 	}, [stats?.minutesSinceBreak]);
 
@@ -401,7 +410,8 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{STATUS_MESSAGES.risk[riskStatus as keyof typeof STATUS_MESSAGES.risk]}
+								{STATUS_MESSAGES
+									.risk[riskStatus as keyof typeof STATUS_MESSAGES.risk]}
 							</p>
 						</div>
 					</div>
@@ -475,7 +485,10 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{STATUS_MESSAGES.heavyPress[heavyPressStatus as keyof typeof STATUS_MESSAGES.heavyPress]}
+								{STATUS_MESSAGES
+									.heavyPress[
+										heavyPressStatus as keyof typeof STATUS_MESSAGES.heavyPress
+									]}
 							</p>
 						</div>
 					</div>
@@ -549,7 +562,10 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{STATUS_MESSAGES.staticHold[staticHoldStatus as keyof typeof STATUS_MESSAGES.staticHold]}
+								{STATUS_MESSAGES
+									.staticHold[
+										staticHoldStatus as keyof typeof STATUS_MESSAGES.staticHold
+									]}
 							</p>
 						</div>
 					</div>
@@ -623,7 +639,8 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{STATUS_MESSAGES.bursts[burstsStatus as keyof typeof STATUS_MESSAGES.bursts]}
+								{STATUS_MESSAGES
+									.bursts[burstsStatus as keyof typeof STATUS_MESSAGES.bursts]}
 							</p>
 						</div>
 					</div>
@@ -697,7 +714,10 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{STATUS_MESSAGES.extremeTilt[extremeTiltStatus as keyof typeof STATUS_MESSAGES.extremeTilt]}
+								{STATUS_MESSAGES
+									.extremeTilt[
+										extremeTiltStatus as keyof typeof STATUS_MESSAGES.extremeTilt
+									]}
 							</p>
 						</div>
 					</div>
@@ -771,180 +791,197 @@ export default function LandingPage() {
 									textAlign: "left",
 								}}
 							>
-								{STATUS_MESSAGES.minutesSinceBreak[minutesSinceBreakStatus as keyof typeof STATUS_MESSAGES.minutesSinceBreak]}
+								{STATUS_MESSAGES
+									.minutesSinceBreak[
+										minutesSinceBreakStatus as keyof typeof STATUS_MESSAGES.minutesSinceBreak
+									]}
 							</p>
 						</div>
 					</div>
 				</div>
 
-				   {/* Alerts and Recommendations */}
-				   <div
-					   style={{
-						   background: "rgba(255, 255, 255, 0.05)",
-						   borderRadius: "12px",
-						   padding: "20px",
-						   border: "1px solid rgba(255, 255, 255, 0.1)",
-						   backdropFilter: "blur(10px)",
-						   flexShrink: 0,
-						   maxHeight: "120px",
-						   overflow: "scroll"
-					   }}
-				   >
-					   <h3
-						   style={{
-							   fontSize: "16px",
-							   fontWeight: "600",
-							   margin: "0 0 16px 0",
-							   color: "#00ffff",
-						   }}
-					   >
-						   Smart Health Alerts
-					   </h3>
+				{/* Alerts and Recommendations */}
+				<div
+					style={{
+						background: "rgba(255, 255, 255, 0.05)",
+						borderRadius: "12px",
+						padding: "20px",
+						border: "1px solid rgba(255, 255, 255, 0.1)",
+						backdropFilter: "blur(10px)",
+						flexShrink: 0,
+						maxHeight: "120px",
+						overflow: "scroll",
+					}}
+				>
+					<h3
+						style={{
+							fontSize: "16px",
+							fontWeight: "600",
+							margin: "0 0 16px 0",
+							color: "#00ffff",
+						}}
+					>
+						Smart Health Alerts
+					</h3>
 
-					   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-						   {Array.isArray(notifications) && notifications
-							   .filter(n => n.type === "alert")
-							   .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-							   .map((notif) => (
-								   <div
-									   key={notif.id}
-									   style={{
-										   background: "rgba(255, 165, 0, 0.1)",
-										   borderRadius: "8px",
-										   padding: "12px",
-										   border: "1px solid rgba(255, 165, 0, 0.3)",
-										   display: "flex",
-										   alignItems: "flex-start",
-										   gap: "12px",
-									   }}
-								   >
-									   <div
-										   style={{
-											   width: "6px",
-											   height: "6px",
-											   borderRadius: "50%",
-											   background: "#ffa500",
-											   marginTop: "6px",
-											   flexShrink: 0,
-										   }}
-									   />
-									   <div>
-										   <h4
-											   style={{
-												   fontSize: "14px",
-												   fontWeight: "600",
-												   margin: "0 0 4px 0",
-												   color: "#ffa500",
-											   }}
-										   >
-											   Ergonomic Alert
-										   </h4>
-										   <p
-											   style={{
-												   fontSize: "13px",
-												   color: "#cccccc",
-												   margin: 0,
-												   lineHeight: "1.4",
-											   }}
-										   >
-											   {notif.message}
-										   </p>
-										   <span style={{ fontSize: "11px", color: "#888", marginTop: 2 }}>
-											   {new Date(notif.timestamp).toLocaleString()}
-										   </span>
-									   </div>
-								   </div>
-							   ))}
-						   {Array.isArray(notifications) && notifications.filter(n => n.type === "alert").length === 0 && (
-							   <span style={{ color: "#cccccc", fontSize: "13px" }}>No alerts at this time.</span>
-						   )}
-					   </div>
-				   </div>
+					<div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+						{Array.isArray(notifications) && notifications.filter((n) =>
+							n.type === "alert"
+						).sort((a, b) =>
+							new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+						).map((notif) => (
+							<div
+								key={notif.id}
+								style={{
+									background: "rgba(255, 165, 0, 0.1)",
+									borderRadius: "8px",
+									padding: "12px",
+									border: "1px solid rgba(255, 165, 0, 0.3)",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
 
-				
+									gap: "12px",
+								}}
+							>
+								<div
+									style={{
+										width: "6px",
+										height: "6px",
+										borderRadius: "50%",
+										background: "#ffa500",
+										marginTop: "6px",
+										flexShrink: 0,
+									}}
+								/>
+								<div>
+									<h4
+										style={{
+											fontSize: "14px",
+											fontWeight: "600",
+											margin: "0 0 4px 0",
+											color: "#ffa500",
+										}}
+									>
+										Ergonomic Alert
+									</h4>
+									<p
+										style={{
+											fontSize: "13px",
+											color: "#cccccc",
+											margin: 0,
+											lineHeight: "1.4",
+										}}
+									>
+										{notif.message}
+									</p>
+									<span style={{ fontSize: "11px", color: "#888", marginTop: 2 }}>
+										{new Date(notif.timestamp).toLocaleString()}
+									</span>
+								</div>
+							</div>
+						))}
+						{Array.isArray(notifications) && notifications.filter((n) =>
+									n.type === "alert"
+								).length === 0
+							&& (
+								<span style={{ color: "#cccccc", fontSize: "13px" }}>
+									No alerts at this time.
+								</span>
+							)}
+					</div>
+				</div>
+
 				{/* Exercises */}
-				   <div
-					   style={{
-						   background: "rgba(255, 255, 255, 0.05)",
-						   borderRadius: "12px",
-						   padding: "20px",
-						   border: "1px solid rgba(255, 255, 255, 0.1)",
-						   backdropFilter: "blur(10px)",
-						   flexShrink: 0,
-						   maxHeight: "120px",
-						   overflow: "scroll"
-					   }}
-				   >
-					   <h3
-						   style={{
-							   fontSize: "16px",
-							   fontWeight: "600",
-							   margin: "0 0 16px 0",
-							   color: "#00ffff",
-						   }}
-					   >
-						   Exercises
-					   </h3>
+				<div
+					style={{
+						background: "rgba(255, 255, 255, 0.05)",
+						borderRadius: "12px",
+						padding: "20px",
+						border: "1px solid rgba(255, 255, 255, 0.1)",
+						backdropFilter: "blur(10px)",
+						flexShrink: 0,
+						maxHeight: "120px",
+						overflow: "scroll",
+					}}
+				>
+					<h3
+						style={{
+							fontSize: "16px",
+							fontWeight: "600",
+							margin: "0 0 16px 0",
+							color: "#00ffff",
+						}}
+					>
+						Exercises
+					</h3>
 
-					   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-						   {Array.isArray(notifications) && notifications
-							   .filter(n => n.type === "exercise")
-							   .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-							   .map((notif) => (
-								   <div
-									   key={notif.id}
-									   style={{
-										   background: "rgba(255, 165, 0, 0.1)",
-										   borderRadius: "8px",
-										   padding: "12px",
-										   border: "1px solid rgba(255, 165, 0, 0.3)",
-										   display: "flex",
-										   alignItems: "flex-start",
-										   gap: "12px",
-									   }}
-								   >
-									   <div
-										   style={{
-											   width: "6px",
-											   height: "6px",
-											   borderRadius: "50%",
-											   background: "#ffa500",
-											   marginTop: "6px",
-											   flexShrink: 0,
-										   }}
-									   />
-									   <div>
-										   <h4
-											   style={{
-												   fontSize: "14px",
-												   fontWeight: "600",
-												   margin: "0 0 4px 0",
-												   color: "#ffa500",
-											   }}
-										   >
-											   Ergonomic Alert
-										   </h4>
-										   <p
-											   style={{
-												   fontSize: "13px",
-												   color: "#cccccc",
-												   margin: 0,
-												   lineHeight: "1.4",
-											   }}
-										   >
-											   {notif.message}
-										   </p>
-										   <span style={{ fontSize: "11px", color: "#888", marginTop: 2 }}>
-											   {new Date(notif.timestamp).toLocaleString()}
-										   </span>
-									   </div>
-								   </div>
-							   ))}
-						   {Array.isArray(notifications) && notifications.filter(n => n.type === "exercise").length === 0 && (
-							   <span style={{ color: "#cccccc", fontSize: "13px" }}>No alerts at this time.</span>
-						   )}
-					   </div>
-				   </div>
+					<div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+						{Array.isArray(notifications) && notifications.filter((n) =>
+							n.type === "exercise"
+						).sort((a, b) =>
+							new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+						).map((notif) => (
+							<div
+								key={notif.id}
+								style={{
+									background: "rgba(255, 165, 0, 0.1)",
+									borderRadius: "8px",
+									padding: "12px",
+									border: "1px solid rgba(255, 165, 0, 0.3)",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: "12px",
+								}}
+							>
+								<div
+									style={{
+										width: "6px",
+										height: "6px",
+										borderRadius: "50%",
+										background: "#ffa500",
+										marginTop: "6px",
+										flexShrink: 0,
+									}}
+								/>
+								<div>
+									<h4
+										style={{
+											fontSize: "14px",
+											fontWeight: "600",
+											margin: "0 0 4px 0",
+											color: "#ffa500",
+										}}
+									>
+										Ergonomic Alert
+									</h4>
+									<p
+										style={{
+											fontSize: "13px",
+											color: "#cccccc",
+											margin: 0,
+											lineHeight: "1.4",
+										}}
+									>
+										{notif.message}
+									</p>
+									<span style={{ fontSize: "11px", color: "#888", marginTop: 2 }}>
+										{new Date(notif.timestamp).toLocaleString()}
+									</span>
+								</div>
+							</div>
+						))}
+						{Array.isArray(notifications) && notifications.filter((n) =>
+									n.type === "exercise"
+								).length === 0
+							&& (
+								<span style={{ color: "#cccccc", fontSize: "13px" }}>
+									No alerts at this time.
+								</span>
+							)}
+					</div>
+				</div>
 			</div>
 
 			{/* Right Panel - Finger Visualization */}
