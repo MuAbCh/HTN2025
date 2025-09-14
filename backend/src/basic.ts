@@ -44,10 +44,12 @@ async function onData(line: string) {
 }
 
 setTimeout(async () => {
-	const count = Math.floor((Date.now() - start) / 1000)
+	const count = Math.floor((Date.now() - start) / 1000);
 	parser.off("data", onData);
-	console.log(await fetch("https://kvucic.app.n8n.cloud/webhook/c18e2903-e30b-41ab-a5cc-d1bcbbc3d261", {
-		method: "POST",
-		body: JSON.stringify({ ...data, count }),
-	}).then(res => res.json()))
+	console.log(
+		await fetch("https://kvucic.app.n8n.cloud/webhook/c18e2903-e30b-41ab-a5cc-d1bcbbc3d261", {
+			method: "POST",
+			body: JSON.stringify({ ...data, count }),
+		}).then((res) => res.json()),
+	);
 }, 10_000);
