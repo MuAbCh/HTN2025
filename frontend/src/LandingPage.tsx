@@ -11,11 +11,9 @@ const PRESSURE_RING_BUFFER_SIZE = 8;
 const NOTIFICATION_THROTTLE_MS = 30000; // 30 seconds
 
 interface NotificationItem {
-	id: string;
 	type: "alert" | "exercise" | "info";
 	message: string;
 	timestamp: Date;
-	read: boolean;
 }
 
 interface Stats {
@@ -91,7 +89,6 @@ export default function LandingPage() {
 
 	const [stats, setStats] = useState<Stats | null>(null);
 	const [notifications, setNotifications] = useState<NotificationItem[] | null>([{
-		id: "1",
 		type: "info",
 		message: "Welcome to Clau! Your ergonomic assistant is now active.",
 		timestamp: new Date(Date.now()),
@@ -159,7 +156,11 @@ export default function LandingPage() {
 				icon: '/favicon.ico',
 				tag: metric // This prevents duplicate notifications for the same metric
 			});
-			
+
+			// set alert on the screen as well
+			let notif: NotificationItem = { type: "alert", message: NOTIFICATION_MESSAGES[metric], timestamp: new Date(Date.now()) };
+			setNotifications((prev) => prev ? [notif, ...prev] : [notif]);
+
 			setLastNotifTime(now);
 		}
 		
