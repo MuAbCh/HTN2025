@@ -154,7 +154,7 @@ function Controls(
 export default function TwoFingers({ indexValue, middleValue }: TwoFingersProps) {
 	const [localIndexValue, setLocalIndexValue] = useState(indexValue);
 	const [localMiddleValue, setLocalMiddleValue] = useState(middleValue);
-	const [showControls, setShowControls] = useState(true);
+	const [showControls, setShowControls] = useState(false);
 	const cameraPosition: [number, number, number] = [2, 4.5, -2.0];
 
 	// Update local state when props change
