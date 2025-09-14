@@ -12,7 +12,7 @@ const NOTIFICATION_THROTTLE_MS = 30000; // 30 seconds
 
 interface NotificationItem {
 	id: string;
-	type: "stretch" | "break" | "posture" | "info";
+	type: "alert" | "exercise" | "info";
 	message: string;
 	timestamp: Date;
 	read: boolean;
@@ -90,24 +90,12 @@ export default function LandingPage() {
 	});
 
 	const [stats, setStats] = useState<Stats | null>(null);
-	const [notifications, setNotifications] = useState<NotificationItem[]>([{
+	const [notifications, setNotifications] = useState<NotificationItem[] | null>([{
 		id: "1",
-		type: "stretch",
-		message: "Finger tension spike detected - time for some gentle stretches",
-		timestamp: new Date(Date.now() - 5 * 60 * 1000),
+		type: "info",
+		message: "Welcome to Clau! Your ergonomic assistant is now active.",
+		timestamp: new Date(Date.now()),
 		read: false,
-	}, {
-		id: "2",
-		type: "posture",
-		message: "Wrist positioning could be improved - check your setup",
-		timestamp: new Date(Date.now() - 15 * 60 * 1000),
-		read: false,
-	}, {
-		id: "3",
-		type: "break",
-		message: "Perfect timing! Your break came right when your fingers needed it",
-		timestamp: new Date(Date.now() - 45 * 60 * 1000),
-		read: true,
 	}]);
 
 	const [pressureLeftRing, setPressureLeftRing] = useState<number[]>([]);
@@ -202,12 +190,6 @@ export default function LandingPage() {
 			default:
 				return <TaskAltIcon />;
 		}
-	};
-
-	const markAsRead = (id: string) => {
-		setNotifications((prev) =>
-			prev.map((notif) => notif.id === id ? { ...notif, read: true } : notif)
-		);
 	};
 
 	const getNormStatus = (norm: number) => {
@@ -794,351 +776,174 @@ export default function LandingPage() {
 					</div>
 				</div>
 
-				{/* Alerts and Recommendations */}
-				<div
-					style={{
-						background: "rgba(255, 255, 255, 0.05)",
-						borderRadius: "12px",
-						padding: "20px",
-						border: "1px solid rgba(255, 255, 255, 0.1)",
-						backdropFilter: "blur(10px)",
-						flexShrink: 0,
-					}}
-				>
-					<h3
-						style={{
-							fontSize: "16px",
-							fontWeight: "600",
-							margin: "0 0 16px 0",
-							color: "#00ffff",
-						}}
-					>
-						Smart Health Insights
-					</h3>
+				   {/* Alerts and Recommendations */}
+				   <div
+					   style={{
+						   background: "rgba(255, 255, 255, 0.05)",
+						   borderRadius: "12px",
+						   padding: "20px",
+						   border: "1px solid rgba(255, 255, 255, 0.1)",
+						   backdropFilter: "blur(10px)",
+						   flexShrink: 0,
+						   maxHeight: "120px",
+						   overflow: "scroll"
+					   }}
+				   >
+					   <h3
+						   style={{
+							   fontSize: "16px",
+							   fontWeight: "600",
+							   margin: "0 0 16px 0",
+							   color: "#00ffff",
+						   }}
+					   >
+						   Smart Health Alerts
+					   </h3>
 
-					<div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-						{/* Alert Item */}
-						<div
-							style={{
-								background: "rgba(255, 165, 0, 0.1)",
-								borderRadius: "8px",
-								padding: "12px",
-								border: "1px solid rgba(255, 165, 0, 0.3)",
-								display: "flex",
-								alignItems: "flex-start",
-								gap: "12px",
-							}}
-						>
-							<div
-								style={{
-									width: "6px",
-									height: "6px",
-									borderRadius: "50%",
-									background: "#ffa500",
-									marginTop: "6px",
-									flexShrink: 0,
-								}}
-							/>
-							<div>
-								<h4
-									style={{
-										fontSize: "14px",
-										fontWeight: "600",
-										margin: "0 0 4px 0",
-										color: "#ffa500",
-									}}
-								>
-									Ergonomic Alert
-								</h4>
-								<p
-									style={{
-										fontSize: "13px",
-										color: "#cccccc",
-										margin: 0,
-										lineHeight: "1.4",
-									}}
-								>
-									Your finger tension has increased by 18% in the last hour.
-									Time for a quick 90-second finger flexibility routine.
-								</p>
-							</div>
-						</div>
+					   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+						   {Array.isArray(notifications) && notifications
+							   .filter(n => n.type === "alert")
+							   .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+							   .map((notif) => (
+								   <div
+									   key={notif.id}
+									   style={{
+										   background: "rgba(255, 165, 0, 0.1)",
+										   borderRadius: "8px",
+										   padding: "12px",
+										   border: "1px solid rgba(255, 165, 0, 0.3)",
+										   display: "flex",
+										   alignItems: "flex-start",
+										   gap: "12px",
+									   }}
+								   >
+									   <div
+										   style={{
+											   width: "6px",
+											   height: "6px",
+											   borderRadius: "50%",
+											   background: "#ffa500",
+											   marginTop: "6px",
+											   flexShrink: 0,
+										   }}
+									   />
+									   <div>
+										   <h4
+											   style={{
+												   fontSize: "14px",
+												   fontWeight: "600",
+												   margin: "0 0 4px 0",
+												   color: "#ffa500",
+											   }}
+										   >
+											   Ergonomic Alert
+										   </h4>
+										   <p
+											   style={{
+												   fontSize: "13px",
+												   color: "#cccccc",
+												   margin: 0,
+												   lineHeight: "1.4",
+											   }}
+										   >
+											   {notif.message}
+										   </p>
+										   <span style={{ fontSize: "11px", color: "#888", marginTop: 2 }}>
+											   {new Date(notif.timestamp).toLocaleString()}
+										   </span>
+									   </div>
+								   </div>
+							   ))}
+						   {Array.isArray(notifications) && notifications.filter(n => n.type === "alert").length === 0 && (
+							   <span style={{ color: "#cccccc", fontSize: "13px" }}>No alerts at this time.</span>
+						   )}
+					   </div>
+				   </div>
 
-						{/* Recommendation Item */}
-						<div
-							style={{
-								background: "rgba(0, 255, 255, 0.1)",
-								borderRadius: "8px",
-								padding: "12px",
-								border: "1px solid rgba(0, 255, 255, 0.3)",
-								display: "flex",
-								alignItems: "flex-start",
-								gap: "12px",
-							}}
-						>
-							<div
-								style={{
-									width: "6px",
-									height: "6px",
-									borderRadius: "50%",
-									background: "#00ffff",
-									marginTop: "6px",
-									flexShrink: 0,
-								}}
-							/>
-							<div>
-								<h4
-									style={{
-										fontSize: "14px",
-										fontWeight: "600",
-										margin: "0 0 4px 0",
-										color: "#00ffff",
-									}}
-								>
-									Posture Optimization
-								</h4>
-								<p
-									style={{
-										fontSize: "13px",
-										color: "#cccccc",
-										margin: 0,
-										lineHeight: "1.4",
-									}}
-								>
-									Slight wrist adjustment recommended - try raising your keyboard
-									or lowering your chair by 1-2 inches for optimal angle.
-								</p>
-							</div>
-						</div>
+				
+				{/* Exercises */}
+				   <div
+					   style={{
+						   background: "rgba(255, 255, 255, 0.05)",
+						   borderRadius: "12px",
+						   padding: "20px",
+						   border: "1px solid rgba(255, 255, 255, 0.1)",
+						   backdropFilter: "blur(10px)",
+						   flexShrink: 0,
+						   maxHeight: "120px",
+						   overflow: "scroll"
+					   }}
+				   >
+					   <h3
+						   style={{
+							   fontSize: "16px",
+							   fontWeight: "600",
+							   margin: "0 0 16px 0",
+							   color: "#00ffff",
+						   }}
+					   >
+						   Exercises
+					   </h3>
 
-						{/* Positive Feedback */}
-						<div
-							style={{
-								background: "rgba(0, 255, 0, 0.1)",
-								borderRadius: "8px",
-								padding: "12px",
-								border: "1px solid rgba(0, 255, 0, 0.3)",
-								display: "flex",
-								alignItems: "flex-start",
-								gap: "12px",
-							}}
-						>
-							<div
-								style={{
-									width: "6px",
-									height: "6px",
-									borderRadius: "50%",
-									background: "#00ff00",
-									marginTop: "6px",
-									flexShrink: 0,
-								}}
-							/>
-							<div>
-								<h4
-									style={{
-										fontSize: "14px",
-										fontWeight: "600",
-										margin: "0 0 4px 0",
-										color: "#00ff00",
-									}}
-								>
-									Excellent Form!
-								</h4>
-								<p
-									style={{
-										fontSize: "13px",
-										color: "#cccccc",
-										margin: 0,
-										lineHeight: "1.4",
-									}}
-								>
-									Your keystroke consistency has improved 22% this week! 
-									This controlled technique will help prevent long-term strain.
-								</p>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				{/* Exercise History & Notifications */}
-				<div
-					style={{
-						background: "rgba(255, 255, 255, 0.05)",
-						borderRadius: "12px",
-						padding: "20px",
-						border: "1px solid rgba(255, 255, 255, 0.1)",
-						backdropFilter: "blur(10px)",
-						flex: 1,
-						minHeight: 0,
-						display: "flex",
-						flexDirection: "column",
-					}}
-				>
-					<h2
-						style={{
-							fontSize: "20px",
-							fontWeight: "600",
-							margin: "0 0 24px 0",
-							color: "#ffffff",
-						}}
-					>
-						Activity Log & Alerts
-					</h2>
-					{/* Exercise History Section */}
-					<div
-						style={{
-							marginBottom: "24px",
-							paddingBottom: "20px",
-							borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-						}}
-					>
-						<h3
-							style={{
-								fontSize: "16px",
-								fontWeight: "600",
-								margin: "0 0 16px 0",
-								color: "#00ffff",
-							}}
-						>
-							Recent Activities
-						</h3>
-						<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-							<div
-								style={{
-									background: "rgba(0, 255, 0, 0.1)",
-									borderRadius: "6px",
-									padding: "12px",
-									border: "1px solid rgba(0, 255, 0, 0.2)",
-									display: "flex",
-									justifyContent: "space-between",
-									alignItems: "center",
-								}}
-							>
-								<span style={{ color: "#ffffff", fontSize: "14px" }}>
-									Hand Mobility Routine
-								</span>
-								<span style={{ color: "#00ff00", fontSize: "12px" }}>
-									Completed 2h ago
-								</span>
-							</div>
-							<div
-								style={{
-									background: "rgba(0, 255, 0, 0.1)",
-									borderRadius: "6px",
-									padding: "12px",
-									border: "1px solid rgba(0, 255, 0, 0.2)",
-									display: "flex",
-									justifyContent: "space-between",
-									alignItems: "center",
-								}}
-							>
-								<span style={{ color: "#ffffff", fontSize: "14px" }}>
-									Tension Release Session
-								</span>
-								<span style={{ color: "#00ff00", fontSize: "12px" }}>
-									Completed 4h ago
-								</span>
-							</div>
-							<div
-								style={{
-									background: "rgba(255, 165, 0, 0.1)",
-									borderRadius: "6px",
-									padding: "12px",
-									border: "1px solid rgba(255, 165, 0, 0.2)",
-									display: "flex",
-									justifyContent: "space-between",
-									alignItems: "center",
-								}}
-							>
-								<span style={{ color: "#ffffff", fontSize: "14px" }}>
-									Pressure Point Relief
-								</span>
-								<span style={{ color: "#ffa500", fontSize: "12px" }}>
-									Skipped 6h ago
-								</span>
-							</div>
-						</div>
-					</div>
-
-					{/* Notifications Section */}
-					<div>
-						<h3
-							style={{
-								fontSize: "16px",
-								fontWeight: "600",
-								margin: "0 0 16px 0",
-								color: "#00ffff",
-							}}
-						>
-							Health Alerts
-						</h3>
-						<div
-							style={{
-								display: "flex",
-								flexDirection: "column",
-								gap: "12px",
-								flex: 1,
-								overflowY: "auto",
-							}}
-						>
-							{notifications.map((notification) => (
-								<div
-									key={notification.id}
-									style={{
-										background: notification.read
-											? "rgba(255, 255, 255, 0.03)"
-											: "rgba(0, 255, 255, 0.1)",
-										borderRadius: "8px",
-										padding: "16px",
-										border: notification.read
-											? "1px solid rgba(255, 255, 255, 0.05)"
-											: "1px solid rgba(0, 255, 255, 0.3)",
-										cursor: "pointer",
-										transition: "all 0.2s ease",
-									}}
-									onClick={() => markAsRead(notification.id)}
-								>
-									<div
-										style={{
-											display: "flex",
-											justifyContent: "space-between",
-											alignItems: "flex-start",
-											marginBottom: "8px",
-										}}
-									>
-										<h3
-											style={{
-												fontSize: "14px",
-												fontWeight: "600",
-												margin: 0,
-												color: notification.read ? "#cccccc" : "#00ffff",
-											}}
-										>
-											{notification.type.charAt(0).toUpperCase()
-												+ notification.type.slice(1)}
-										</h3>
-										<span style={{ fontSize: "12px", color: "#888888" }}>
-											{new Date(notification.timestamp).toLocaleTimeString(
-												[],
-												{ hour: "2-digit", minute: "2-digit" },
-											)}
-										</span>
-									</div>
-									<p
-										style={{
-											fontSize: "12px",
-											margin: 0,
-											color: notification.read ? "#999999" : "#ffffff",
-											lineHeight: "1.4",
-										}}
-									>
-										{notification.message}
-									</p>
-								</div>
-							))}
-						</div>
-					</div>
-				</div>
+					   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+						   {Array.isArray(notifications) && notifications
+							   .filter(n => n.type === "exercise")
+							   .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+							   .map((notif) => (
+								   <div
+									   key={notif.id}
+									   style={{
+										   background: "rgba(255, 165, 0, 0.1)",
+										   borderRadius: "8px",
+										   padding: "12px",
+										   border: "1px solid rgba(255, 165, 0, 0.3)",
+										   display: "flex",
+										   alignItems: "flex-start",
+										   gap: "12px",
+									   }}
+								   >
+									   <div
+										   style={{
+											   width: "6px",
+											   height: "6px",
+											   borderRadius: "50%",
+											   background: "#ffa500",
+											   marginTop: "6px",
+											   flexShrink: 0,
+										   }}
+									   />
+									   <div>
+										   <h4
+											   style={{
+												   fontSize: "14px",
+												   fontWeight: "600",
+												   margin: "0 0 4px 0",
+												   color: "#ffa500",
+											   }}
+										   >
+											   Ergonomic Alert
+										   </h4>
+										   <p
+											   style={{
+												   fontSize: "13px",
+												   color: "#cccccc",
+												   margin: 0,
+												   lineHeight: "1.4",
+											   }}
+										   >
+											   {notif.message}
+										   </p>
+										   <span style={{ fontSize: "11px", color: "#888", marginTop: 2 }}>
+											   {new Date(notif.timestamp).toLocaleString()}
+										   </span>
+									   </div>
+								   </div>
+							   ))}
+						   {Array.isArray(notifications) && notifications.filter(n => n.type === "exercise").length === 0 && (
+							   <span style={{ color: "#cccccc", fontSize: "13px" }}>No alerts at this time.</span>
+						   )}
+					   </div>
+				   </div>
 			</div>
 
 			{/* Right Panel - Finger Visualization */}
