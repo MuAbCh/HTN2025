@@ -219,7 +219,7 @@ export default function LandingPage() {
 			case "warning":
 				return "#fff8b8";
 			case "alert":
-				return "#ffd6c9";
+				return "#ff7272ff";
 			default:
 				return "#9e9e9e";
 		}
@@ -308,8 +308,8 @@ export default function LandingPage() {
 				style={{
 					flex: "1",
 					padding: "24px",
-					display: "flex",
-					flexDirection: "column",
+					display: "grid",
+					gridTemplateRows: "0.55fr 1.45fr",
 					gap: "20px",
 					overflow: "hidden",
 					minHeight: 0,
@@ -844,7 +844,6 @@ export default function LandingPage() {
 						border: "1px solid rgba(255, 255, 255, 0.1)",
 						backdropFilter: "blur(10px)",
 						flexShrink: 0,
-						maxHeight: "120px",
 						overflow: "scroll",
 					}}
 				>
@@ -935,7 +934,6 @@ export default function LandingPage() {
 						border: "1px solid rgba(255, 255, 255, 0.1)",
 						backdropFilter: "blur(10px)",
 						flexShrink: 0,
-						maxHeight: "120px",
 						overflow: "scroll",
 					}}
 				>
