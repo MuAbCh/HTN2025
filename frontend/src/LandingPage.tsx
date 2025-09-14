@@ -584,7 +584,7 @@ export default function LandingPage() {
 										color: getStatusColor(staticHoldStatus),
 									}}
 								>
-									Sustained Pressure
+									Hand Mobility
 								</h3>
 							</div>
 
@@ -661,7 +661,7 @@ export default function LandingPage() {
 										color: getStatusColor(burstsStatus)
 									}}
 								>
-									Twitch Response
+									Finger Jerk
 								</h3>
 							</div>
 
