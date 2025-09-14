@@ -49,7 +49,7 @@ const STATUS_MESSAGES = {
 		alert: "Prolonged static positioning detected - stretch and flex your fingers now",
 	},
 	bursts: {
-		normal: "Smooth, controlled finger movements - excellent technique",
+		normal: "Smooth, controlled finger movements",
 		warning: "Some erratic movements detected - slow down and focus on control",
 		alert: "Excessive jerky movements detected - take a break and reset your posture",
 	},
@@ -275,13 +275,13 @@ export default function LandingPage() {
 	}, [stats?.extremeTiltNorm, stats?.pressure]);
 
 	const staticHoldStatus = useMemo(() => {
-		const status = getNormStatus(stats?.staticHoldNorm || 0);
+		const status = getNormStatus((stats?.staticHoldNorm || 0) * 400);
 		sendNotificationIfNeeded("staticHold", status);
 		return status;
 	}, [stats?.staticHoldNorm]);
 
 	const burstsStatus = useMemo(() => {
-		const status = getNormStatus(stats?.burstsNorm || 0);
+		const status = getNormStatus((stats?.burstsNorm || 0) * 100);
 		sendNotificationIfNeeded("bursts", status);
 		return status;
 	}, [stats?.burstsNorm]);
@@ -584,7 +584,7 @@ export default function LandingPage() {
 										color: getStatusColor(staticHoldStatus),
 									}}
 								>
-									Excessive Movement
+									Sustained Pressure
 								</h3>
 							</div>
 
@@ -661,7 +661,7 @@ export default function LandingPage() {
 										color: getStatusColor(burstsStatus)
 									}}
 								>
-									Sudden Movements
+									Twitch Response
 								</h3>
 							</div>
 
@@ -1024,6 +1024,7 @@ export default function LandingPage() {
 					background: "rgba(255, 255, 255, 0.02)",
 					borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
 					position: "relative",
+					width: "25%"
 				}}
 			>
 				<div

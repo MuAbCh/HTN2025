@@ -19,10 +19,10 @@ const TILT_NEUTRAL_MIN = 650; // not rotated
 // risk weights
 const WEIGHTS = {
 	heavy_press_pct: 0.55,
-	extreme_tilt_pct: 0.15, // % time hand is sideways
-	static_hold_norm: 0.10,
-	burst_norm: 0.10,
-	microbreak_norm: 0.10,
+	extreme_tilt_pct: 0.2, // % time hand is sideways
+	static_hold_norm: 0.15,
+	burst_norm: 0.20,
+	microbreak_norm: 0.15,
 };
 
 const port = new SerialPort({ path: "/dev/tty.usbserial-A5069RR4", baudRate: 9600 });
@@ -228,7 +228,7 @@ function tick() {
 		tilt: tiltNow,
 		heavyPressNorm: heavy_press_pct,
 		staticHoldNorm: static_hold_norm,
-		burstsNorm: burst_norm,
+		burstsNorm: burst_norm * 1.2,
 		extremeTiltNorm: extreme_tilt_pct,
 		staticHoldStreakSec: state.staticHoldStreakSec,
 		minutesSinceBreak,
