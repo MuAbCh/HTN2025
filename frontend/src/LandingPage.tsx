@@ -188,18 +188,19 @@ export default function LandingPage() {
 					extremeTilt: getNormStatus(stats.extremeTiltNorm),
 					minutesSinceBreak: getNormStatus(stats.minutesSinceBreak),
 				};
-				fetch("https://muabch.app.n8n.cloud/webhook-test/exercise-suggestion", {
+				fetch("https://muabch.app.n8n.cloud/webhook/exercise-suggestion", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(currentStatuses),
 				})
 					.then(res => res.json())
 					.then((data) => {
-						if (data && data.description) {
+						if (data && data.output) {
+						    const exercise = data.output.Exercises[0];
 							let notif: NotificationItem = {
-								name: data.name,
+								name: exercise.Name,
 								type: "exercise",
-								message: data.description,
+								message: exercise.Description,
 								timestamp: new Date(Date.now()),
 							};
 							setNotifications((prev) => prev ? [notif, ...prev] : [notif]);
