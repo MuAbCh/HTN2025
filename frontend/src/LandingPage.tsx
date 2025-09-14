@@ -1,6 +1,4 @@
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CloseIcon from "@mui/icons-material/Close";
-import ErrorIcon from "@mui/icons-material/Error";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import WarningIcon from "@mui/icons-material/Warning";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -12,6 +10,7 @@ const NOTIFICATION_THROTTLE_MS = 30000; // 30 seconds
 
 interface NotificationItem {
 	type: "alert" | "exercise" | "info";
+	name: string;
 	message: string;
 	timestamp: Date;
 }
@@ -90,7 +89,14 @@ export default function LandingPage() {
 
 	const [stats, setStats] = useState<Stats | null>(null);
 	const [notifications, setNotifications] = useState<NotificationItem[] | null>([{
+		name: "Welcome!",
 		type: "alert",
+		message: "Welcome to Clau! Your ergonomic assistant is now active.",
+		timestamp: new Date(Date.now()),
+	},
+	{
+		name: "Welcome!",
+		type: "exercise",
 		message: "Welcome to Clau! Your ergonomic assistant is now active.",
 		timestamp: new Date(Date.now()),
 	}]);
@@ -163,6 +169,7 @@ export default function LandingPage() {
 
 			// set alert on the screen as well
 			let notif: NotificationItem = {
+				name: "Alert: " + metric.charAt(0).toUpperCase() + metric.slice(1),
 				type: "alert",
 				message: NOTIFICATION_MESSAGES[metric],
 				timestamp: new Date(Date.now()),
@@ -170,6 +177,36 @@ export default function LandingPage() {
 			setNotifications((prev) => prev ? [notif, ...prev] : [notif]);
 
 			setLastNotifTime(now);
+
+			// get exercises
+			if (stats) {
+				const currentStatuses: Record<string, string> = {
+					risk: getNormStatus(stats.risk),
+					heavyPress: getNormStatus(stats.heavyPressNorm),
+					staticHold: getNormStatus(stats.staticHoldNorm),
+					bursts: getNormStatus(stats.burstsNorm),
+					extremeTilt: getNormStatus(stats.extremeTiltNorm),
+					minutesSinceBreak: getNormStatus(stats.minutesSinceBreak),
+				};
+				fetch("https://muabch.app.n8n.cloud/webhook-test/exercise-suggestion", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(currentStatuses),
+				})
+					.then(res => res.json())
+					.then((data) => {
+						if (data && data.description) {
+							let notif: NotificationItem = {
+								name: data.name,
+								type: "exercise",
+								message: data.description,
+								timestamp: new Date(Date.now()),
+							};
+							setNotifications((prev) => prev ? [notif, ...prev] : [notif]);
+						}
+					})
+					.catch(() => { /* ignore errors for now */ });
+			}
 		}
 
 		previousStatuses.current[metric] = currentStatus;
@@ -620,7 +657,7 @@ export default function LandingPage() {
 										fontSize: "18px",
 										fontWeight: "600",
 										margin: 0,
-										color: getStatusColor(burstsStatus),
+										color: getStatusColor(burstsStatus)
 									}}
 								>
 									Sudden Movements
@@ -860,7 +897,7 @@ export default function LandingPage() {
 											color: "#6adcf9ff",
 										}}
 									>
-										Ergonomic Alert
+										{notif.name}
 									</h4>
 									<p
 										style={{
@@ -951,7 +988,7 @@ export default function LandingPage() {
 											color: "#6adcf9ff",
 										}}
 									>
-										Ergonomic Alert
+										{notif.name}
 									</h4>
 									<p
 										style={{
